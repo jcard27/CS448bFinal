@@ -49,14 +49,20 @@
         r: 2;
         fill: red;
       }
-      .mutedRestaurants {
-        r: 2;
+      .plot1AllCircles {
+        r: 3;
         fill: #A9A9A9;
       }
       .sliderCircle {
         r: 4;
         fill: black;
       }
+    .input[type=text] {
+      width: 130px;
+      -webkit-transition: width 0.4s ease-in-out;
+    transition: width 0.4s ease-in-out;
+}
+
 
   </style>
 
@@ -64,11 +70,14 @@
 
   <!--   This is where you should import your style sheet  -->
   <!--  <link rel="stylesheet" href="css/styles.css?v=1.0"> -->
+  <input type="text" name="search" placeholder="Search..">
   <script src="https://d3js.org/d3.v5.min.js"></script>
 
 </head>
 
 <body>
+  <div id = dropdown1div></div>
+  <div id = plot1div></div>
   <!--   This is where you should import your Javascript code  -->
   <script src="js/scripts.js"></script>
 </body>
