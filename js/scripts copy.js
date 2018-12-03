@@ -1,39 +1,126 @@
+//BUGS:
+// - when radius for b is overlapping A, can't drag A
+
+// Set up map size
+var mapWidth = 750;
+var mapHeight = 750;
+
+// Set up projection that the map is using
+// This is the mapping between <longitude, latitude> position to <x, y> pixel position on the map
+// projection is a function and it has an inverse:
+// projection([lon, lat]) returns [x, y]
+// projection.invert([x, y]) returns [lon, lat]
+var projection = d3.geoMercator()
+  .center([-122.433701, 37.767683]) // San Francisco, roughly
+  .scale(225000)
+  .translate([mapWidth / 2, mapHeight / 2]);
+
 // Add an SVG element to the DOM
 var svg = d3.select('body').append('svg')
-  .attr('width', screen.width)
-  .attr('height', screen.height);
+  .attr('width', mapWidth*2)
+  .attr('height', mapHeight*2);
+
+// Location for instructions
+var instructionX = 650;
+var instructionY = 460;
+
+// Add SVG map at correct size, assuming map is saved in a subdirectory called `data`
+svg.append('image')
+  .attr('width', mapWidth)
+  .attr('height', mapHeight)
+  .attr('xlink:href', 'data/sf-map.svg');
+
+// Title
+svg.append("text")
+   .attr("class", "vizTitle")
+   .attr("x", 30)
+   .attr("y", 100)
+   .text("Restaurants of San Francisco")
+
+// Instructions
+svg.append("text")
+   .attr("x", instructionX)
+   .attr("y", instructionY)
+   .attr("class", "sliderTitle")
+   .text("Instructions:")
+svg.append("text")
+   .attr("x", instructionX)
+   .attr("y", instructionY)
+   .attr("dy", "1.5em")
+   .attr("class", "instructions")
+   .text(" - Restaurants that meet the minimum inspection score are shown on map.")
+svg.append("text")
+   .attr("x", instructionX)
+   .attr("y", instructionY)
+   .attr("dy", "3em")
+   .attr("class", "instructions")
+   .text(" - Hover over a restaurant to see its name and inspection score.")
+svg.append("text")
+   .attr("x", instructionX)
+   .attr("y", instructionY)
+   .attr("dy", "4.5em")
+   .attr("class", "instructions")
+   .text(" - Drag blue and green circles to highlight restaurants within their intersection.")
+svg.append("text")
+   .attr("x", instructionX)
+   .attr("y", instructionY)
+   .attr("dy", "6em")
+   .attr("class", "instructions")
+   .text(" - Use sliders to adjust minimum inspection score and radii of interest.")
+
+//Caption regarding scores
+ svg.append("text")
+    .attr("x", instructionX)
+    .attr("y", instructionY)
+    .attr("dy", "9em")
+    .attr("class", "instructions")
+    .text("*The San Francisco Department of Public Health defines scores as follows:")
+svg.append("text")
+   .attr("x", instructionX+ 20)
+   .attr("y", instructionY)
+   .attr("dy", "10em")
+   .attr("class", "instructions")
+   .text("< 70: Poor")
+svg.append("text")
+   .attr("x", instructionX+ 20)
+   .attr("y", instructionY)
+   .attr("dy", "11em")
+   .attr("class", "instructions")
+   .text("71-85: Needs Improvement")
+svg.append("text")
+  .attr("x", instructionX+ 20)
+  .attr("y", instructionY)
+  .attr("dy", "12em")
+  .attr("class", "instructions")
+  .text("86-90: Adequate")
+svg.append("text")
+   .attr("x", instructionX+ 20)
+   .attr("y", instructionY)
+   .attr("dy", "13em")
+   .attr("class", "instructions")
+   .text("> 90: Good")
 
 //Load data
-d3.csv("/data/filtered_finalProjectDataset.csv", parseInputRow).then(loadData);
+d3.csv("/data/restaurant_scores.csv", parseInputRow).then(loadData);
 
 //Parse CSV rows and returns array of objects with the specified fields.
 function parseInputRow (d) {
     return {
-       name : d.FCID_desc,
-       portion_desc : d. Portion_description,
-       ghge_portion : +d.kgCO2perPortion,
-       kcal_portion : +d.kcalPortion,
-       protein_portion : +d.protein_portion,
-       carbs_portion : +d.carbsPortion,
-       fat_portion : +d.fatPortion,
-       sugar_portion : +d.sugarPortion,
-       fruit : +d.Fruit,
-       veg : +d.Veg,
-       meat : +d.Meat,
-       dairy : +d.Dairy,
-       grain : +d.grain,
-       protein : +d.protein,
-       oil : +d.oil,
-       beverage : +d.beverage
-
+       business_name : d.business_name,
+       business_longitude : +d.business_longitude,
+       business_latitude : +d.business_latitude,
+       inspection_score : +d.inspection_score
    };
 };
 
 //Callback for d3.csv (all data related tasks go here)
 function loadData(loadedData){
    csvData = loadedData
-   console.log(csvData)
-   //generateVis(csvData);
+   csvData.forEach(function(d) {
+                      d.proj = projection([d.business_longitude, d.business_latitude]);
+                   }
+   );
+   generateVis(csvData);
 };
 
 //Generate visualization using parsed data from CSV (array of objects)
