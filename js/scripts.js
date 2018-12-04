@@ -171,23 +171,47 @@ function createPlot2(csvData){
    let refAnnotationOffset = 2;
    let plotMargin = 100;
    let plotWidth = 500; //500;
-   let plotHeight = 500; //500;
+   let plotHeight = 200; //500;
    let barWidth = 30;
 
+
+   var categories = ["Fruits", "Vegetables", "Dairy", "Protein", "Meat", "Beverage"];
    // Add an SVG element to the DOM
+
    var svg = d3.select('#plot2div').append('svg')
                .attr('width', plotWidth + plotMargin*2)
                .attr('height', plotHeight + plotMargin*2);
-   let plot1 = svg.append('g')
-                  .attr('transform', `translate(${plotMargin}, ${plotMargin})`);
 
-let dataSortedByGHGE = csvData.sort(function(x, y){
-   return d3.descending(x.ghge_portion, y.ghge_portion);
-});
-  const xScale = d3.scaleBand()
+               let plot1 = svg.append('g')
+                              .attr('transform', `translate(${plotMargin}, ${plotMargin})`);
+
+   var dropdown = d3.select('#plot2dropdown').append("select")
+                    .attr("class", "dropdown")
+                    .attr("id", "dropdownCategory")
+                    .on("change", function () {
+				                           var cat = document.getElementById("dropdownCategory").value;
+                                   var filteredData = filterByGroup(csvData, cat)
+                                   return plotDat(filteredData, plot1);})
+
+   dropdown.selectAll("option")
+                    .data(categories)
+                    .enter()
+                    .append("option")
+                    .text(function(d){return d})
+
+plotDat(csvData, plot1)
+
+function plotDat(csvData, plot1){
+
+  let dataSortedByGHGE = csvData.sort(function(x, y){
+     return d3.descending(x.ghge_portion, y.ghge_portion);
+  });
+
+  let xScale = d3.scaleBand()
       .range([0, plotWidth])
       .domain(dataSortedByGHGE.map(function(d){ return d.name; }))
       .padding(0.2)
+
    let yScale = d3.scaleLinear()
                  .domain([0,3.5])
                  .range([plotHeight, 0]);
@@ -219,18 +243,24 @@ let dataSortedByGHGE = csvData.sort(function(x, y){
    let innerPlotGroup1 = plot1.append('g');
    let outerPlotGroup1 = plot1.append('g');
 
-   console.log()
 
-   plot1.selectAll()
-   .data(csvData.sort(function(x, y){
-      return d3.ascending(x.ghge_portion, y.ghge_portion);
-   }))
-   .enter()
-   .append('rect')
+   let bars = plot1.selectAll("rect")
+   .data(dataSortedByGHGE)
    .attr('x', function(d){ return xScale(d.name); })
    .attr('y', function (d) {return yScale(d.ghge_portion);}) //(s) => yScale(s.ghge_portion))
    .attr('height', function (d) {return plotHeight - yScale(d.ghge_portion);})
    .attr('width', xScale.bandwidth())
+
+
+   bars.enter().append("rect")
+   .attr('x', function(d){ return xScale(d.name); })
+   .attr('y', function (d) {return yScale(d.ghge_portion);}) //(s) => yScale(s.ghge_portion))
+   .attr('height', function (d) {return plotHeight - yScale(d.ghge_portion);})
+   .attr('width', xScale.bandwidth());
+
+   bars.exit().remove();
+
+}
 };
 
 //////////////////////////////////////////////////////////////////////////
@@ -257,9 +287,20 @@ function filterNames(data, str) {
     return filteredPoints;
 };
 
-function sortByGHGE(data) {
-
-}
+// Filter data to only return data with a score above minimumScore
+function filterByGroup(data, cat) {
+    var filteredPoints = data.filter(function (d) {
+      if (cat.toUpperCase() == "FRUITS") {return d.fruit > 0
+      } else if ( cat.toUpperCase() == "VEGETABLES") {return d.veg > 0
+      } else if (cat.toUpperCase() == "DAIRY") {return d.dairy > 0
+      } else if (cat.toUpperCase() == "MEAT") {return d.meat > 0
+      } else if (cat.toUpperCase() == "PROTEIN") {return d.protein > 0
+      } else if (cat.toUpperCase() == "BEVERAGE") {return d.bevarage > 0
+      }
+    });
+    console.log(filteredPoints)
+    return filteredPoints;
+};
 
 //Search with dropdown autofill
 //   //For dropdown code: https://bl.ocks.org/ProQuestionAsker/8382f70af7f4a7355827c6dc4ee8817d
