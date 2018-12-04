@@ -1,11 +1,3 @@
-
-
-
-// Add an SVG element to the DOM
-var svg = d3.select('#plot1div').append('svg') //d3.select('body').append('svg')
-  .attr('width', screen.width)
-  .attr('height', screen.height);
-
 //Load data
 d3.csv("/data/filtered_finalProjectDataset.csv", parseInputRow).then(loadData);
 
@@ -28,7 +20,6 @@ function parseInputRow (d) {
        protein : +d.Protein,
        oil : +d.Oil,
        beverage : +d.Beverage
-
    };
 };
 
@@ -40,140 +31,219 @@ function loadData(loadedData){
 
 //Generate visualization using parsed data from CSV (array of objects)
 function generateVis(csvData){
-  ///////////////// Declaring Vars /////////////////////
-
-  csvData.forEach(function(d) {
-                     console.log(d.name.indexOf("Mushrooms"));
-                  });
-
-  //For dropdown code: https://bl.ocks.org/ProQuestionAsker/8382f70af7f4a7355827c6dc4ee8817d
-  var dropdown1 = d3.select("#dropdown1div")
-                    .append("input")
-                    .attr("type", "text")
-                    .attr("list", "mySuggestion")
-                    .attr("id", "myVal")
-                    .on("keyup", filterDropdown);
-
-//List example https://www.w3schools.com/howto/howto_js_filter_lists.asp
-var dropList = d3.select("#dropdown1div")
-                  .append("ul")
-                  .attr("class", "myUL")
-
-
-  function filterDropdown(){
-    substring = document.getElementById("myVal").value
-    data = filterNames(csvData, substring)
-    console.log(data)
-
-    var elements = dropList.selectAll("li")
-            .data(data)
-
-            elements.enter()
-            .append("li")
-            .text(function(d){return d.name;});
-
-            elements.exit().remove();
-
-    console.log(dropList.exit())
-
-    // dropList.exit().remove();
-
-  };
-
-
-  let plotMargin = 100;
-  let plotWidth = 500; //500;
-  let plotHeight = 500; //500;
-
-  let plot1 = svg.append('g')
-                 .attr('transform', `translate(${plotMargin}, ${plotMargin})`);
-  let xScale = d3.scaleLinear()
-                 .domain([0,400])
-                 .range([0, plotWidth]);
-  let yScale = d3.scaleLinear()
-                .domain([0,3.5])
-                .range([plotHeight, 0]);
-  let xAxis = plot1.append('g')
-                  .attr('transform', `translate(0, ${plotHeight})`)
-                  .call(d3.axisBottom(xScale));
-  let yAxis = plot1.append('g')
-                  .call(d3.axisLeft(yScale));
-  let annotationGroup = plot1.append('g');
-
-
-
-  addCircles(csvData, plot1, "plot1AllCircles", xScale, yScale);
-
-  //Add circles to plot1
-  function addCircles(filteredPoints, plot, circleClass, xScale, yScale) {
-    var circles = plot.selectAll("circle")
-                    .data(filteredPoints)
-     circles.enter().append("circle")
-        .merge(circles)
-        .attr("class", circleClass)
-        .attr("cx", function (d) {return xScale(d.kcal_portion);})
-        .attr("cy", function (d) {return yScale(d.ghge_portion);})
-     circles.exit().remove();
-     plot.selectAll("circle")
-                    .on("mouseover",	displayName)
-                    .on("mouseout", undisplay);
-  };
-
-  // Highights circle with stroke and displays restaurant name
-  function displayName (d) {
-    var xPos = this.cx.animVal.value;
-    var yPos = this.cy.animVal.value;
-    var name = d3.select(this).datum().name;
-    // var score = d3.select(this).datum().inspection_score;
-    var highlightedPoint = d3.select(this)
-                             .attr("r", 4)
-                             .style("stroke", "black")
-                             .style("stroke-width", "2");
-      annotationGroup.append("text")
-                     .attr("x", xPos - 4)
-                     .attr("y", yPos - 22)
-                     .attr("class", "annotations")
-                     .text(name);
-      // annotationGroup.append("text")
-      //                .attr("x", xPos - 4)
-      //                .attr("y", yPos - 8)
-      //                .attr("class", "annotations")
-      //                .text("Inspection score: " + score);
-  };
-
-  // Undoes the highlighting from displayName (removes stroke and annotation)
-  function undisplay (d) {
-    d3.select(this)
-      .attr("r", 2)
-      .style("stroke-width", "0")
-    annotationGroup.selectAll("text").remove();
-  }
-
+  createPlot1(csvData)
+  createPlot2(csvData)
 
  };
+
+//Create Scatterplot
+function createPlot1 (csvData) {
+// Add an SVG element to the DOM
+ let titleOffset = 10;
+ let axisOffset = 35;
+ let refAnnotationOffset = 2;
+ let plotMargin = 100;
+ let plotWidth = 500; //500;
+ let plotHeight = 500; //500;
+
+ var svg1 = d3.select('#plot1div').append('svg')
+   .attr('width', plotWidth + plotMargin*2)
+   .attr('height', plotHeight + plotMargin*2);
+
+ let plot1 = svg1.append('g')
+                .attr('transform', `translate(${plotMargin}, ${plotMargin})`);
+ let xScale = d3.scaleLinear()
+                .domain([0,400])
+                .range([0, plotWidth]);
+ let yScale = d3.scaleLinear()
+               .domain([0,3.5])
+               .range([plotHeight, 0]);
+ let xAxis1 = plot1.append('g')
+                 .attr('transform', `translate(0, ${plotHeight})`)
+                 .call(d3.axisBottom(xScale));
+ let yAxis1 = plot1.append('g')
+                 .call(d3.axisLeft(yScale));
+
+ let plot1title = plot1.append("text")
+                       .attr("class", "plotTitle")
+                       .attr("text-anchor", "middle")
+                       .attr("x", plotWidth/2)
+                       .attr("y", -titleOffset)
+                       .text("Emissions vs. Calories per Serving of Food")
+ let plot1xlab = plot1.append("text")
+                       .attr("class", "axisLabel")
+                       .attr("text-anchor", "middle")
+                       .attr("x", plotWidth/2)
+                       .attr("y", plotHeight + axisOffset)
+                       .text("Calories per Serving")
+ let plot1ylab = plot1.append("text")
+                       .attr("transform", "rotate(-90)")
+                       .attr("class", "axisLabel")
+                       .attr("text-anchor", "middle")
+                       .attr("x", -plotHeight/2)
+                       .attr("y",-axisOffset)
+                       .text("kg CO2 Equivalent per Serving")
+ let innerPlotGroup1 = plot1.append('g');
+ let outerPlotGroup1 = plot1.append('g');
+ let ref1 = outerPlotGroup1.append("line")
+                           .attr("class", "refLine")
+                           .attr("width", plotWidth)
+                           .attr("x1", 0)
+                           .attr("x2", plotWidth)
+                           .attr("y1", yScale(0.41))
+                           .attr("y2", yScale(0.41))
+ let ref1text = plot1.append("text")
+                       .attr("class", "refAnnotation")
+                       .attr("text-anchor", "end")
+                       .attr("x", plotWidth)
+                       .attr("y", yScale(0.41) - refAnnotationOffset)
+                       .text("1 Mile Driven in Car")
+   let ref2 = outerPlotGroup1.append("line")
+                             .attr("class", "refLine")
+                             .attr("width", plotWidth)
+                             .attr("x1", 0)
+                             .attr("x2", plotWidth)
+                             .attr("y1", yScale(5*0.41))
+                             .attr("y2", yScale(5*0.41))
+   let ref2text = plot1.append("text")
+                         .attr("class", "refAnnotation")
+                         .attr("text-anchor", "end")
+                         .attr("x", plotWidth)
+                         .attr("y", yScale(5*0.41) - refAnnotationOffset)
+                         .text("5 Miles Driven in Car")
+ addCircles(csvData, innerPlotGroup1, "plot1AllCircles", xScale, yScale);
+
+ //Add circles to plot1
+ function addCircles(filteredPoints, plot, circleClass, xScale, yScale) {
+     var circles = plot.selectAll("circle")
+                       .data(filteredPoints)
+    circles.enter().append("circle")
+           .merge(circles)
+           .attr("class", circleClass)
+           .attr("cx", function (d) {return xScale(d.kcal_portion);})
+           .attr("cy", function (d) {return yScale(d.ghge_portion);})
+    circles.exit().remove();
+    plot.selectAll("circle")
+         .on("mouseover",	function(){var el = this;
+                                     d3.select(this).moveToFront();
+                                       return displayName(el, plot)
+                                     })
+         .on("mouseout", function(){var el = this;
+                                     return undisplay(el, plot)
+                                   })
+ };
+
+ // Highights circle with stroke and display tooltip
+ function displayName (a, plot) {
+   var xPos = a.cx.animVal.value;
+   var yPos = a.cy.animVal.value;
+   var name = d3.select(a).datum().name;
+   var portion = d3.select(a).datum().portion_desc;
+   var highlightedPoint = d3.select(a)
+                            .attr("r", 4)
+                            .style("stroke", "black")
+                            .style("stroke-width", "2");
+   plot.append("text")
+                  .attr("x", xPos - 4)
+                  .attr("y", yPos - 22)
+                  .attr("class", "annotations")
+                  .text(name);
+  plot.append("text")
+                 .attr("x", xPos - 4)
+                 .attr("y", yPos - 8)
+                 .attr("class", "annotations")
+                 .text(portion);
+ };
+
+ // Undoes the highlighting from displayName (removes stroke and tooltip)
+ function undisplay (a, plot) {
+   d3.select(a)
+     .attr("r", 2)
+     .style("stroke-width", "0")
+   plot.selectAll("text").remove();
+ }
+
+};
+
+function createPlot2(csvData){
+   let titleOffset = 10;
+   let axisOffset = 35;
+   let refAnnotationOffset = 2;
+   let plotMargin = 100;
+   let plotWidth = 500; //500;
+   let plotHeight = 500; //500;
+   let barWidth = 30;
+
+   // Add an SVG element to the DOM
+   var svg = d3.select('#plot2div').append('svg')
+               .attr('width', plotWidth + plotMargin*2)
+               .attr('height', plotHeight + plotMargin*2);
+   let plot1 = svg.append('g')
+                  .attr('transform', `translate(${plotMargin}, ${plotMargin})`);
+
+let dataSortedByGHGE = csvData.sort(function(x, y){
+   return d3.descending(x.ghge_portion, y.ghge_portion);
+});
+  const xScale = d3.scaleBand()
+      .range([0, plotWidth])
+      .domain(dataSortedByGHGE.map(function(d){ return d.name; }))
+      .padding(0.2)
+   let yScale = d3.scaleLinear()
+                 .domain([0,3.5])
+                 .range([plotHeight, 0]);
+
+   let xAxis1 = plot1.append('g')
+                   .attr('transform', `translate(0, ${plotHeight})`)
+                   .call(d3.axisBottom(xScale));
+   let yAxis1 = plot1.append('g')
+                   .call(d3.axisLeft(yScale));
+   let plot1title = plot1.append("text")
+                         .attr("class", "plotTitle")
+                         .attr("text-anchor", "middle")
+                         .attr("x", plotWidth/2)
+                         .attr("y", -titleOffset)
+                         .text("Emissions vs. Calories per Serving of Food")
+   let plot1xlab = plot1.append("text")
+                         .attr("class", "axisLabel")
+                         .attr("text-anchor", "middle")
+                         .attr("x", plotWidth/2)
+                         .attr("y", plotHeight + axisOffset)
+                         .text("Calories per Serving")
+   let plot1ylab = plot1.append("text")
+                         .attr("transform", "rotate(-90)")
+                         .attr("class", "axisLabel")
+                         .attr("text-anchor", "middle")
+                         .attr("x", -plotHeight/2)
+                         .attr("y",-axisOffset)
+                         .text("kg CO2 Equivalent per Serving")
+   let innerPlotGroup1 = plot1.append('g');
+   let outerPlotGroup1 = plot1.append('g');
+
+   console.log()
+
+   plot1.selectAll()
+   .data(csvData.sort(function(x, y){
+      return d3.ascending(x.ghge_portion, y.ghge_portion);
+   }))
+   .enter()
+   .append('rect')
+   .attr('x', function(d){ return xScale(d.name); })
+   .attr('y', function (d) {return yScale(d.ghge_portion);}) //(s) => yScale(s.ghge_portion))
+   .attr('height', function (d) {return plotHeight - yScale(d.ghge_portion);})
+   .attr('width', xScale.bandwidth())
+};
 
 //////////////////////////////////////////////////////////////////////////
 //Utility Functions
 /////////////////////////////////////////////////////////////////////////
 
-// Move slider marker and label
-//Returns new value corresponding to slider position
-function moveSlider (event, sliderPos, xMin, xMax, range, marker, label, offset) {
-    var sliderPos;
-    var newValue;
-    if (event.x < xMin) {
-      sliderPos = [xMin];
-    } else if (xMax < event.x) {
-        sliderPos = [xMax];
-    } else {
-        sliderPos = [event.x];
-    }
-    newValue = ((xMin - sliderPos[0])*range)/(xMin - xMax) + offset;
-    marker.attr("cx", sliderPos)
-    label.attr("x", sliderPos)
-                 .text(parseFloat(newValue.toFixed(2)))
-   return newValue;
-};
+//Move element to front
+//https://gist.github.com/trtg/3922684
+  d3.selection.prototype.moveToFront = function() {
+    return this.each(function(){
+      this.parentNode.appendChild(this);
+    });
+  };
 
 // Filter data to only return data with a score above minimumScore
 function filterNames(data, str) {
@@ -187,18 +257,37 @@ function filterNames(data, str) {
     return filteredPoints;
 };
 
+function sortByGHGE(data) {
 
-//Calculate distance in miles between 2 points
-function calcDist(loc1, loc2){
-// Inputs:
-// loc1 - [longitude, latitude] of location 1
-// loc2 - [longitude, latitude] of location 2
-// Output:
-// dist - distance in miles between locations 1 and 2
+}
+
+//Search with dropdown autofill
+//   //For dropdown code: https://bl.ocks.org/ProQuestionAsker/8382f70af7f4a7355827c6dc4ee8817d
+//   var dropdown1 = d3.select("#dropdown1div")
+//                     .append("input")
+//                     .attr("type", "text")
+//                     .attr("id", "myVal")
+//                     .on("keyup", filterDropdown);
 //
-// Note: I used example from https://bl.ocks.org/ThomasThoren/6a543c4d804f35a240f9 here
-    var radians = d3.geoDistance(loc1, loc2);
-    var earth_radius = 3959;  // miles
-    var dist = earth_radius * radians;
-    return dist;
-};
+// //List example https://www.w3schools.com/howto/howto_js_filter_lists.asp
+// var dropList = d3.select("#dropdown1div")
+//                   .append("ul")
+//                   .attr("class", "myUL")
+//
+//
+//   function filterDropdown(){
+//     substring = document.getElementById("myVal").value
+//     data = filterNames(csvData, substring)
+//     console.log(data)
+//
+//     var elements = dropList.selectAll("li")
+//             .data(data)
+//
+//             elements.enter()
+//             .append("li")
+//             .text(function(d){return d.name;});
+//
+//             elements.exit().remove();
+//
+//     console.log(dropList.exit())
+//   };

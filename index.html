@@ -33,18 +33,17 @@
         font-weight: bold;
         font-size: 12px;
         font-family: sans-serif;
+        background-color: green;
 
       }
+
       .outerRadius {
         fill-opacity: 0.2;
       }
       .POI {
         r: 6;
       }
-      .sliderBar {
-        stroke: black;
-        stroke-width: 1;
-      }
+
       .highlightedRestaurants {
         r: 2;
         fill: red;
@@ -68,6 +67,25 @@
     padding: 0;
     margin: 0;
 }
+.plotTitle{
+  font-weight: bold;
+  font-size: 18px;
+  font-family: sans-serif;
+}
+.axisLabel{
+  font-weight: bold;
+  font-size: 16px;
+  font-family: sans-serif;
+}
+.refLine {
+  stroke: black;
+  stroke-width: 1;
+}
+.refAnnotation {
+  /* font-weight: bold; */
+  font-size: 12px;
+  font-family: sans-serif;
+}
 
   </style>
 
@@ -81,8 +99,9 @@
 </head>
 
 <body>
-  <div id = dropdown1div></div>
+  <!-- <div id = dropdown1div></div> -->
   <div id = plot1div></div>
+  <div id = plot2div></div?
   <!--   This is where you should import your Javascript code  -->
   <script src="js/scripts.js"></script>
 </body>
