@@ -38,7 +38,6 @@ function loadData(loadedData){
                      } else if (d.bevarage> 0) {d.color = color = "purple"
                      } else {d.color = "gray"}
                    })
-                   console.log(csvData)
    generateVis(csvData);
 };
 
@@ -70,7 +69,7 @@ function createPlot1 (csvData) {
  let axisOffset = 35;
  let refAnnotationOffset = 2;
  let plotMargin = 100;
- let plotWidth = 500; //500;
+ let plotWidth = 300; //500;
  let plotHeight = 500; //500;
 
  var svg1 = d3.select('#plot1div').append('svg')
@@ -193,12 +192,12 @@ function createPlot1 (csvData) {
 
 };
 
-function createPlot2(csvData){
+function createPlot2(csvData, dropdown){
    let titleOffset = 10;
    let axisOffset = 35;
    let refAnnotationOffset = 2;
    let plotMargin = 100;
-   let plotWidth = 500; //500;
+   let plotWidth = 800; //500;
    let plotHeight = 200; //500;
    let barWidth = 30;
 
@@ -219,12 +218,12 @@ function createPlot2(csvData){
                           .attr("x", plotWidth/2)
                           .attr("y", -titleOffset)
                           .text("Emissions From Food Items")
-    let plot1xlab = plot1.append("text")
-                          .attr("class", "axisLabel")
-                          .attr("text-anchor", "middle")
-                          .attr("x", plotWidth/2)
-                          .attr("y", plotHeight + axisOffset)
-                          .text("Food Item")
+    // let plot1xlab = plot1.append("text")
+    //                       .attr("class", "axisLabel")
+    //                       .attr("text-anchor", "middle")
+    //                       .attr("x", plotWidth/2)
+    //                       .attr("y", plotHeight + axisOffset)
+    //                       .text("Food Item")
     let plot1ylab = plot1.append("text")
                           .attr("transform", "rotate(-90)")
                           .attr("class", "axisLabel")
@@ -234,6 +233,36 @@ function createPlot2(csvData){
                           .text("kg CO2 Equivalent per Serving")
     let innerPlotGroup1 = plot1.append('g');
     let outerPlotGroup1 = plot1.append('g');
+
+    let dataSortedByGHGE = csvData.sort(function(x, y){
+       return d3.descending(x.ghge_portion, y.ghge_portion);
+    });
+
+    let xScale = d3.scaleBand()
+        .range([0, plotWidth])
+        .domain([0,1])//domain(dataSortedByGHGE.map(function(d){ return d.name; }))
+        .padding(0.2)
+
+     let yScale = d3.scaleLinear()
+                   .domain([0,3.5])
+                   .range([plotHeight, 0]);
+     let x_axis = d3.axisBottom().scale(xScale);
+     let xAxis1 = plot1.append('g')
+                      .attr("class", "xaxis")
+                     .attr('transform', `translate(0, ${plotHeight})`)
+                     .call(x_axis)
+                     .selectAll("text")
+                  .style("text-anchor", "end")
+                  .attr("transform", "rotate(-90)");
+
+                  //    xAxis1.selectAll("text")
+                  // .style("text-anchor", "end")
+                  // .attr("transform", "rotate(-90)");
+
+                     // .call(d3.axisBottom(xScale));
+     let yAxis1 = plot1.append('g')
+                     .call(d3.axisLeft(yScale));
+
 
    var dropdown = d3.select('#plot2dropdown').append("select")
                     .attr("class", "dropdown")
@@ -253,26 +282,20 @@ plotDat(csvData, plot1)
 
 function plotDat(csvData, plot1){
 
-  let dataSortedByGHGE = csvData.sort(function(x, y){
+  dataSortedByGHGE = csvData.sort(function(x, y){
      return d3.descending(x.ghge_portion, y.ghge_portion);
   });
 
-  let xScale = d3.scaleBand()
-      .range([0, plotWidth])
-      .domain(dataSortedByGHGE.map(function(d){ return d.name; }))
-      .padding(0.2)
-
-   let yScale = d3.scaleLinear()
-                 .domain([0,3.5])
-                 .range([plotHeight, 0]);
-
-   let xAxis1 = plot1.append('g')
-                   .attr('transform', `translate(0, ${plotHeight})`)
-                   .call(d3.axisBottom(xScale));
-   let yAxis1 = plot1.append('g')
-                   .call(d3.axisLeft(yScale));
-
-
+  xScale.domain(dataSortedByGHGE.map(function(d){ return d.name; }))
+  var xAxis = d3.axisBottom().scale(xScale);
+  plot1.selectAll(".xaxis")
+      .transition()
+      .call(x_axis)
+      .selectAll("text")
+        .style("text-anchor", "end")
+        .attr("dx", "-.8em")
+        .attr("dy", "-0.5em")
+        .attr("transform", "rotate(-65)");
 
    let bars = plot1.selectAll("rect")
    .data(dataSortedByGHGE)
@@ -309,7 +332,6 @@ function plotDat(csvData, plot1){
 
 // Filter data to only return data with a score above minimumScore
 function filterNames(data, str) {
-  console.log(str.toUpperCase())
     var filteredPoints = data.filter(function (d) {
       data.forEach(function(d) {
                          d.contains = d.name.toUpperCase().indexOf(str.toUpperCase());
