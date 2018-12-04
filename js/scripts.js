@@ -42,15 +42,44 @@ function loadData(loadedData){
 function generateVis(csvData){
   ///////////////// Declaring Vars /////////////////////
 
+  csvData.forEach(function(d) {
+                     console.log(d.name.indexOf("Mushrooms"));
+                  });
+
   //For dropdown code: https://bl.ocks.org/ProQuestionAsker/8382f70af7f4a7355827c6dc4ee8817d
   var dropdown1 = d3.select("#dropdown1div")
-  dropdown1.append("select")
-           .selectAll("option")
-           .data(csvData)
-           .enter()
-           .append("option")
-           .attr("value", function(d){return d.name;})
-           .text(function(d){return d.name;})
+                    .append("input")
+                    .attr("type", "text")
+                    .attr("list", "mySuggestion")
+                    .attr("id", "myVal")
+                    .on("keyup", filterDropdown);
+
+//List example https://www.w3schools.com/howto/howto_js_filter_lists.asp
+var dropList = d3.select("#dropdown1div")
+                  .append("ul")
+                  .attr("class", "myUL")
+
+
+  function filterDropdown(){
+    substring = document.getElementById("myVal").value
+    data = filterNames(csvData, substring)
+    console.log(data)
+
+    var elements = dropList.selectAll("li")
+            .data(data)
+
+            elements.enter()
+            .append("li")
+            .text(function(d){return d.name;});
+
+            elements.exit().remove();
+
+    console.log(dropList.exit())
+
+    // dropList.exit().remove();
+
+  };
+
 
   let plotMargin = 100;
   let plotWidth = 500; //500;
@@ -147,30 +176,17 @@ function moveSlider (event, sliderPos, xMin, xMax, range, marker, label, offset)
 };
 
 // Filter data to only return data with a score above minimumScore
-function filterByScore(data, minimumScore) {
+function filterNames(data, str) {
+  console.log(str.toUpperCase())
     var filteredPoints = data.filter(function (d) {
-        return d.inspection_score > minimumScore
+      data.forEach(function(d) {
+                         d.contains = d.name.toUpperCase().indexOf(str.toUpperCase());
+                      })
+        return d.contains > -1
     });
     return filteredPoints;
 };
 
-//Filter CSV data for points lying within a given radius of 2 points
-function getPoints(data, rPxA, rPxB, posA, posB){
-    var closePoints = data.filter(function (d) {
-        var distA = Math.abs(Math.sqrt(
-                        Math.pow((d.proj[0] - posA[0].x), 2)
-                        +
-                        Math.pow((d.proj[1] - posA[0].y),2)
-                    ));
-        var distB = Math.abs(Math.sqrt(
-                        Math.pow((d.proj[0] - posB[0].x), 2)
-                        +
-                        Math.pow((d.proj[1] - posB[0].y),2)
-                    ));
-        return (distA < rPxA && distB < rPxB);
-    });
-    return closePoints;
-};
 
 //Calculate distance in miles between 2 points
 function calcDist(loc1, loc2){
@@ -185,13 +201,4 @@ function calcDist(loc1, loc2){
     var earth_radius = 3959;  // miles
     var dist = earth_radius * radians;
     return dist;
-};
-
-//Calculate radius in pixels given a radius in miles
-function calcPxRadius(rMiles, degreesPerPixel){
-    var earth_radius = 3959;  // miles
-    var radians = rMiles/earth_radius;
-    var degrees = (radians * 180)/3.14159;
-    var rPixels = Math.abs(degrees/degreesPerPixel);
-    return rPixels;
 };
