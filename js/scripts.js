@@ -25,9 +25,36 @@ function parseInputRow (d) {
 
 //Callback for d3.csv (all data related tasks go here)
 function loadData(loadedData){
-   csvData = loadedData
+   var csvData = loadedData
+   // csvData = assignColors(csvData);
+   csvData.forEach(function(d) {
+                     if (d.fruit > 0) {d.color = color = "pink"
+                     } else if (d.veg > 0) {d.color = color = "green"
+                     } else if (d.dairy > 0) {d.color = color = "blue"
+                     } else if (d.meat > 0) {d.color = color = "red"
+                     } else if (d.grain > 0) {d.color = color = "brown"
+                     } else if (d.oil> 0) {d.color = color = "yellow"
+                     } else if (d.protein> 0) {d.color = color = "orange"
+                     } else if (d.bevarage> 0) {d.color = color = "purple"
+                     } else {d.color = "gray"}
+                   })
+                   console.log(csvData)
    generateVis(csvData);
 };
+
+function assignColors(data){
+  data.forEach(function(d) {
+                    if (d.fruit > 0) {d.color = color = "pink"
+                    } else if (d.veg > 0) {d.color = color = "green"
+                    } else if (d.dairy > 0) {d.color = color = "blue"
+                    } else if (d.meat > 0) {d.color = color = "red"
+                    } else if (d.grain > 0) {d.color = color = "brown"
+                    } else if (d.oil> 0) {d.color = color = "yellow"
+                    } else if (d.protein> 0) {d.color = color = "orange"
+                    } else if (d.bevarage> 0) {d.color = color = "purple"
+                    } else {d.color = "gray"}
+                  })
+}
 
 //Generate visualization using parsed data from CSV (array of objects)
 function generateVis(csvData){
@@ -120,6 +147,7 @@ function createPlot1 (csvData) {
     circles.enter().append("circle")
            .merge(circles)
            .attr("class", circleClass)
+           .attr("fill", function(d) {return d.color;})
            .attr("cx", function (d) {return xScale(d.kcal_portion);})
            .attr("cy", function (d) {return yScale(d.ghge_portion);})
     circles.exit().remove();
@@ -175,15 +203,37 @@ function createPlot2(csvData){
    let barWidth = 30;
 
 
-   var categories = ["Fruits", "Vegetables", "Dairy", "Protein", "Meat", "Beverage"];
+   var categories = ["All Foods", "Fruits", "Vegetables", "Grains", "Dairy", "Protein", "Meat", "Beverage"];
    // Add an SVG element to the DOM
 
    var svg = d3.select('#plot2div').append('svg')
                .attr('width', plotWidth + plotMargin*2)
                .attr('height', plotHeight + plotMargin*2);
 
-               let plot1 = svg.append('g')
-                              .attr('transform', `translate(${plotMargin}, ${plotMargin})`);
+   let plot1 = svg.append('g')
+                  .attr('transform', `translate(${plotMargin}, ${plotMargin})`);
+
+    let plot1title = plot1.append("text")
+                          .attr("class", "plotTitle")
+                          .attr("text-anchor", "middle")
+                          .attr("x", plotWidth/2)
+                          .attr("y", -titleOffset)
+                          .text("Emissions From Food Items")
+    let plot1xlab = plot1.append("text")
+                          .attr("class", "axisLabel")
+                          .attr("text-anchor", "middle")
+                          .attr("x", plotWidth/2)
+                          .attr("y", plotHeight + axisOffset)
+                          .text("Food Item")
+    let plot1ylab = plot1.append("text")
+                          .attr("transform", "rotate(-90)")
+                          .attr("class", "axisLabel")
+                          .attr("text-anchor", "middle")
+                          .attr("x", -plotHeight/2)
+                          .attr("y",-axisOffset)
+                          .text("kg CO2 Equivalent per Serving")
+    let innerPlotGroup1 = plot1.append('g');
+    let outerPlotGroup1 = plot1.append('g');
 
    var dropdown = d3.select('#plot2dropdown').append("select")
                     .attr("class", "dropdown")
@@ -221,31 +271,12 @@ function plotDat(csvData, plot1){
                    .call(d3.axisBottom(xScale));
    let yAxis1 = plot1.append('g')
                    .call(d3.axisLeft(yScale));
-   let plot1title = plot1.append("text")
-                         .attr("class", "plotTitle")
-                         .attr("text-anchor", "middle")
-                         .attr("x", plotWidth/2)
-                         .attr("y", -titleOffset)
-                         .text("Emissions vs. Calories per Serving of Food")
-   let plot1xlab = plot1.append("text")
-                         .attr("class", "axisLabel")
-                         .attr("text-anchor", "middle")
-                         .attr("x", plotWidth/2)
-                         .attr("y", plotHeight + axisOffset)
-                         .text("Calories per Serving")
-   let plot1ylab = plot1.append("text")
-                         .attr("transform", "rotate(-90)")
-                         .attr("class", "axisLabel")
-                         .attr("text-anchor", "middle")
-                         .attr("x", -plotHeight/2)
-                         .attr("y",-axisOffset)
-                         .text("kg CO2 Equivalent per Serving")
-   let innerPlotGroup1 = plot1.append('g');
-   let outerPlotGroup1 = plot1.append('g');
+
 
 
    let bars = plot1.selectAll("rect")
    .data(dataSortedByGHGE)
+   .attr("fill", function(d){return d.color})
    .attr('x', function(d){ return xScale(d.name); })
    .attr('y', function (d) {return yScale(d.ghge_portion);}) //(s) => yScale(s.ghge_portion))
    .attr('height', function (d) {return plotHeight - yScale(d.ghge_portion);})
@@ -253,6 +284,7 @@ function plotDat(csvData, plot1){
 
 
    bars.enter().append("rect")
+   .attr("fill", function(d){return d.color})
    .attr('x', function(d){ return xScale(d.name); })
    .attr('y', function (d) {return yScale(d.ghge_portion);}) //(s) => yScale(s.ghge_portion))
    .attr('height', function (d) {return plotHeight - yScale(d.ghge_portion);})
@@ -295,10 +327,10 @@ function filterByGroup(data, cat) {
       } else if (cat.toUpperCase() == "DAIRY") {return d.dairy > 0
       } else if (cat.toUpperCase() == "MEAT") {return d.meat > 0
       } else if (cat.toUpperCase() == "PROTEIN") {return d.protein > 0
-      } else if (cat.toUpperCase() == "BEVERAGE") {return d.bevarage > 0
-      }
+      } else if (cat.toUpperCase() == "BEVERAGE") {return d.beverage > 0
+      } else if (cat.toUpperCase() == "GRAINS") {return d.grain > 0
+      } else {return d}
     });
-    console.log(filteredPoints)
     return filteredPoints;
 };
 
