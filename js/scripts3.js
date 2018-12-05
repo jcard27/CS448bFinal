@@ -9,7 +9,7 @@ function parseInputRow (d) {
        ghge_portion : +d.kgCO2perPortion,
        kcal_portion : +d.kcalPortion,
        protein_portion : +d.proteinPortion,
-       carbs_portion : +d.carbsPortion,
+       carb_portion : +d.carbsPortion,
        fat_portion : +d.fatPortion,
        sugar_portion : +d.sugarPortion,
        fruit : +d.Fruit,
@@ -52,8 +52,12 @@ function generateVis(csvData){
   let plotMargin2 = 100;
   let plotWidth2 = 500; //500;
   let plotHeight2 = plotHeight1; //500;
-  // let barWidth = 30;
 
+  var svg0 = d3.select('#intro').append('svg')
+                .attr("width", 2000)
+                .attr("height", 300)
+  // var intro = svg0.append("text")
+  //                 .text(/text/intro.txt)
   var svg1 = d3.select('#plot1div').append('svg')
                 .attr("width", 2000)
                 .attr("height", 700)//"height", plotHeight1+2*plotMargin1)
@@ -172,8 +176,9 @@ function generateVis(csvData){
                  .style("text-anchor", "end")
                  .attr("transform", "rotate(-90)");
 
-
+    let y_axis2 = d3.axisLeft().scale(yScale2)
     let yAxis2 = plot2.append('g')
+                    .attr("class", "yaxis")
                     .call(d3.axisLeft(yScale2));
 
   var dropdown = d3.select('#plot2dropdown').append("select")
@@ -183,6 +188,20 @@ function generateVis(csvData){
                                  var cat = document.getElementById("dropdownCategory").value;
                                   var filteredData = filterByGroup(csvData, cat)
                                   return updateFoodGroup(filteredData, plot2);})
+
+                                  addCircles(csvData, innerPlotGroup1, "plot1AllCircles", xScale, yScale);
+                                  updateCircleColors(csvData)
+
+
+    dropdown.selectAll("option")
+                     .data(categories)
+                     .enter()
+                     .append("option")
+                     .text(function(d){return d})
+
+   plotDat(csvData, plot2, 1)
+   updateFoodGroup(csvData, plot2)
+
 ///////////////////////////////////////////////
 
 ///////////////////////////////////////////////
@@ -220,6 +239,7 @@ function generateVis(csvData){
                    .attr("class", "xaxis")
                    .call(d3.axisBottom(xScale3));
    let yAxis3 = plot3.append('g')
+                    .attr("class", "yaxis")
                    .call(d3.axisLeft(yScale3));
    var dropdown3 = d3.select('#plot3dropdown').append("select")
                     .attr("class", "dropdown")
@@ -256,12 +276,12 @@ function generateVis(csvData){
     //               .attr("height", plotHeight3+2*plotMargin1)
     let plot4 = svg3.append('g')
                    .attr('transform', `translate(${2*plotMargin3+ plotWidth3}, ${plotMargin3})`);
-   let plot4title = plot4.append("text")
-                           .attr("class", "plotTitle")
-                           .attr("text-anchor", "middle")
-                           .attr("x", plotWidth4/2)
-                           .attr("y", -titleOffset)
-                           .text("Total Emissions")
+   // let plot4title = plot4.append("text")
+   //                         .attr("class", "plotTitle")
+   //                         .attr("text-anchor", "middle")
+   //                         .attr("x", plotWidth4/2)
+   //                         .attr("y", -titleOffset)
+   //                         .text("Total Emissions")
      let plot4ylab = plot4.append("text")
                            .attr("transform", "rotate(-90)")
                            .attr("class", "axisLabel")
@@ -269,36 +289,209 @@ function generateVis(csvData){
                            .attr("x", -plotHeight4/2)
                            .attr("y",-axisOffset)
                            .text("kg CO2 Equivalent")
+   let plot4xlab = plot4.append("text")
+                         .attr("class", "axisLabel")
+                         .attr("text-anchor", "middle")
+                         .attr("x", plotWidth4/2)
+                         .attr("y", plotHeight4 + axisOffset)
+                         .text("Total Emissions")
      let innerPlotGroup4 = plot4.append('g');
      let outerPlotGroup4 = plot4.append('g');
      let xScale4 = d3.scaleLinear()
-                    .domain([0,400])
+                    .domain([0,1])
                     .range([0, plotWidth4]);
+
+    let q1 = 1.94;
+    let med = 2.8;
+    let q5 = 6.91;
      let yScale4 = d3.scaleLinear()
-                   .domain([0,3.5])
+                   .domain([0,q5+0.01*q5])
                    .range([plotHeight4, 0]);
-     let xAxis4 = plot4.append('g')
-                     .attr('transform', `translate(0, ${plotHeight4})`)
-                     .attr("class", "xaxis")
-                     .call(d3.axisBottom(xScale4));
+     // let xAxis4 = plot4.append('g')
+     //                 .attr('transform', `translate(0, ${plotHeight4})`)
+     //                 .attr("class", "xaxis")
+                     // .call(d3.axisBottom(xScale4));
+    let xAxis4 = plot4.append("line")
+                      .attr("class", "refLine")
+                      .attr("x1", 0)
+                      .attr("x2", plotWidth4)
+                      .attr("y1", plotHeight4)
+                      .attr("y2", plotHeight4)
      let yAxis4 = plot4.append('g')
                      .call(d3.axisLeft(yScale4));
 
+
+     let q1_ref = plot4.append("line")
+                               .attr("class", "refLine")
+                               .attr("width", plotWidth4)
+                               .attr("x1", 0)
+                               .attr("x2", plotWidth4)
+                               .attr("y1", yScale4(q1))
+                               .attr("y2", yScale4(q1))
+     let q1_txt = plot4.append("text")
+                           .attr("class", "refAnnotation")
+                           .attr("text-anchor", "end")
+                           .attr("x", plotWidth4)
+                           .attr("y", yScale4(q1) - refAnnotationOffset)
+                           .text("1st Quintile")
+   let med_ref = plot4.append("line")
+                             .attr("class", "refLine")
+                             .attr("width", plotWidth4)
+                             .attr("x1", 0)
+                             .attr("x2", plotWidth4)
+                             .attr("y1", yScale4(med))
+                             .attr("y2", yScale4(med))
+   let med_txt = plot4.append("text")
+                         .attr("class", "refAnnotation")
+                         .attr("text-anchor", "end")
+                         .attr("x", plotWidth4)
+                         .attr("y", yScale4(med) - refAnnotationOffset)
+                         .text("Median")
+   let q5_ref = plot4.append("line")
+                             .attr("class", "refLine")
+                             .attr("width", plotWidth4)
+                             .attr("x1", 0)
+                             .attr("x2", plotWidth4)
+                             .attr("y1", yScale4(q5))
+                             .attr("y2", yScale4(q5))
+   let q5_txt = plot4.append("text")
+                         .attr("class", "refAnnotation")
+                         .attr("text-anchor", "end")
+                         .attr("x", plotWidth4)
+                         .attr("y", yScale4(q5) - refAnnotationOffset)
+                         .text("5th Quintile")
+
     ///////////////////////////////////////////////////////
 
+    //////////////////////////////////////////////
+      var plotWidth5 = 200
+      var barMargin = 2
+      let barWidth = plotWidth5/4 - barMargin*8;
+      var plotHeight5 = plotHeight2;//200
+      var plotMargin5 = plotMargin1;
+      // var svg3 = d3.select('#plot3div').append('svg')
+      //               .attr("width", 2000)
+      //               .attr("height", plotHeight3+2*plotMargin1)
+      let plot5 = svg3.append('g')
+                     .attr('transform', `translate(${2*plotMargin3+ plotWidth3 + plotWidth4 + plotMargin4}, ${plotMargin3})`);
+     // let plot4title = plot4.append("text")
+     //                         .attr("class", "plotTitle")
+     //                         .attr("text-anchor", "middle")
+     //                         .attr("x", plotWidth4/2)
+     //                         .attr("y", -titleOffset)
+     //                         .text("Total Emissions")
+       let plot5ylab = plot5.append("text")
+                             .attr("transform", "rotate(-90)")
+                             .attr("class", "axisLabel")
+                             .attr("text-anchor", "middle")
+                             .attr("x", -plotHeight4/2)
+                             .attr("y",-axisOffset)
+                             .text("% Daily Value")
+     // let plot5xlab = plot4.append("text")
+     //                       .attr("class", "axisLabel")
+     //                       .attr("text-anchor", "middle")
+     //                       .attr("x", plotWidth4/2)
+     //                       .attr("y", plotHeight4 + axisOffset)
+     //                       .text("Total Emissions")
 
-  addCircles(csvData, innerPlotGroup1, "plot1AllCircles", xScale, yScale);
-  updateCircleColors(csvData)
+      let nut_cats = ["Calories", "Fat", "Protein", "Carbohydrates"]
+       let xScale5 = d3.scaleLinear()
+                      .domain(nut_cats.map(function(d){ return d; }))
+                      .range([0, plotWidth4]);
+       let yScale5 = d3.scaleLinear()
+                     .domain([0,150])
+                     .range([plotHeight4, 0]);
 
 
-  dropdown.selectAll("option")
-                   .data(categories)
-                   .enter()
-                   .append("option")
-                   .text(function(d){return d})
+       // let xAxis4 = plot4.append('g')
+       //                 .attr('transform', `translate(0, ${plotHeight4})`)
+       //                 .attr("class", "xaxis")
+                       // .call(d3.axisBottom(xScale4));
 
- plotDat(csvData, plot2, 1)
- updateFoodGroup(csvData, plot2)
+      let xAxis5 = plot5.append("line")
+                        .attr("class", "refLine")
+                        .attr("x1", 0)
+                        .attr("x2", plotWidth5)
+                        .attr("y1", plotHeight5)
+                        .attr("y2", plotHeight5)
+       let yAxis5 = plot5.append('g')
+                       .call(d3.axisLeft(yScale5));
+
+       let dv_ref = plot5.append("line")
+                                 .attr("class", "refLine")
+                                 .attr("width", plotWidth5)
+                                 .attr("x1", 0)
+                                 .attr("x2", plotWidth5)
+                                 .attr("y1", yScale5(100))
+                                 .attr("y2", yScale5(100))
+       let dv_txt = plot5.append("text")
+                             .attr("class", "refAnnotation")
+                             .attr("text-anchor", "end")
+                             .attr("x", plotWidth5)
+                             .attr("y", yScale5(100) - refAnnotationOffset)
+                             .text("100%")
+      ///////////////////////////////////////////////////////
+     //  var plotWidth3 = plotWidth2;//100
+     //  var plotHeight3 = plotHeight2;//200
+     //  var plotMargin3 = plotMargin1;
+     //  var svg3 = d3.select('#plot3div').append('svg')
+     //                .attr("width", 2000)
+     //                .attr("height", plotHeight3+2*plotMargin1)
+     //  let plot3 = svg3.append('g')
+     //                 .attr('transform', `translate(${plotMargin3}, ${plotMargin3})`);
+     // let plot3title = plot3.append("text")
+     //                         .attr("class", "plotTitle")
+     //                         .attr("text-anchor", "middle")
+     //                         .attr("x", plotWidth3/2)
+     //                         .attr("y", -titleOffset)
+     //                         .text("Emmisions in Food Items")
+     //   let plot3ylab = plot3.append("text")
+     //                         .attr("transform", "rotate(-90)")
+     //                         .attr("class", "axisLabel")
+     //                         .attr("text-anchor", "middle")
+     //                         .attr("x", -plotHeight3/2)
+     //                         .attr("y",-axisOffset)
+     //                         .text("kg CO2 Equivalent per Serving")
+     //   let innerPlotGroup3 = plot3.append('g');
+     //   let outerPlotGroup3 = plot3.append('g');
+     //   let xScale3 = d3.scaleLinear()
+     //                  .domain([0,400])
+     //                  .range([0, plotWidth3]);
+     //   let yScale3 = d3.scaleLinear()
+     //                 .domain([0,3.5])
+     //                 .range([plotHeight3, 0]);
+     //   let xAxis3 = plot3.append('g')
+     //                   .attr('transform', `translate(0, ${plotHeight3})`)
+     //                   .attr("class", "xaxis")
+     //                   .call(d3.axisBottom(xScale3));
+     //   let yAxis3 = plot3.append('g')
+     //                    .attr("class", "yaxis")
+     //                   .call(d3.axisLeft(yScale3));
+     //   var dropdown3 = d3.select('#plot3dropdown').append("select")
+     //                    .attr("class", "dropdown")
+     //                    .attr("id", "dropdownCategory3")
+     //                    .on("change", function () {
+     //                                  var cat = document.getElementById("dropdownCategory3").value;
+     //                                   var filteredData = filterByGroup(csvData, cat)
+     //                                   return plotDat(filteredData, plot3, 0);})
+     //
+     //   let plate = svg3.append('g')
+     //   let plateList = plate.append("ul")
+     //   let servings = [];
+     //   let plateLabels = [];
+     //   let plateX = 500;
+     //   let plateY = 20;
+     //
+     //   dropdown3.selectAll("option")
+     //                    .data(categories)
+     //                    .enter()
+     //                    .append("option")
+     //                    .text(function(d){return d})
+     //  plotDat(csvData, plot3, 0)
+
+      ////////////////////////////////////////////////
+
+
 
   //Add circles to plot1
   function addCircles(filteredPoints, plot, circleClass, xScale, yScale) {
@@ -322,7 +515,6 @@ function addToPlate(a) {
   csvData = addServing(csvData, name)
   // console.log(csvData)
   var filteredPoints = filterByServings(csvData)
-  console.log(filteredPoints.length)
   var dataPoint = filterByName(csvData, name);
 
   var items = plate.selectAll("text")
@@ -334,6 +526,120 @@ function addToPlate(a) {
                    .attr("x", plateX)
                    .attr("y", plateY + 15*filteredPoints.length)
                    .text(function(d){return d.num_servings + "X " + d.name + ", " + d.portion_desc})
+  // console.log(dat)
+  var nut_dat = namearray(filteredPoints)
+  console.log(filteredPoints)
+  // console.log(yScale5(nut_dat.kcal))
+
+
+  var bars4 = plot4.selectAll("rect")
+                  .data(nut_dat)
+                  .attr("x", xScale4(0.5) - 0.5*barWidth)
+                  .attr('y', function (d) {return yScale4(d.ghge);}) //(s) => yScale(s.ghge_portion))
+                  .attr('height', function (d) {return plotHeight4 - yScale4(d.ghge);})
+                  .attr("width", barWidth)
+                  .attr("fill", "black")
+
+      bars4
+      .enter().append("rect")
+      .attr("x", xScale4(0.5) - 0.5*barWidth)
+      .attr('y', function (d) {return yScale4(d.ghge);}) //(s) => yScale(s.ghge_portion))
+      .attr('height', function (d) {return plotHeight4 - yScale4(d.ghge);})
+      .attr("width", barWidth)
+      .attr("fill", "black")
+
+      var kcalBars = plot5.selectAll(".kcal")
+                      .data(nut_dat)
+                      .attr("class", "kcal")
+                      .attr("x", barMargin)//xScale5(0.25) - 0.5*(barWidth+2*barMargin))
+                      .attr('y', function (d) {return yScale5(d.kcal);}) //(s) => yScale(s.ghge_portion))
+                      .attr('height', function (d) {return plotHeight5 - yScale5(d.kcal);})
+                      .attr("width", barWidth)
+                      .attr("fill", function(d){if (d.kcal > 100){ return "red"} else {return "black"}})
+                      // .on("mouseover",	function(){}})
+          kcalBars
+          .enter().append("rect")
+          .attr("class", "kcal")
+          .attr("x", barMargin)//xScale5(0.25) - 0.5*(barWidth+2*barMargin))
+          .attr('y', function (d) {return yScale5(d.kcal);}) //(s) => yScale(s.ghge_portion))
+          .attr('height', function (d) {return plotHeight5 - yScale5(d.kcal);})
+          .attr("width", barWidth)
+          .attr("fill", function(d){if (d.kcal > 100){ return "red"} else {return "black"}})
+
+          var fatBars = plot5.selectAll(".fat")
+                          .data(nut_dat)
+                          .attr("class", "fat")
+                          .attr("x", 2*barMargin+barWidth)//xScale5(0.5) - 0.5*(barWidth+2*barMargin))
+                          .attr('y', function (d) {return yScale5(d.fat);}) //(s) => yScale(s.ghge_portion))
+                          .attr('height', function (d) {return plotHeight5 - yScale5(d.fat);})
+                          .attr("width", barWidth)
+                          .attr("fill", function(d){if (d.fat > 100){ return "red"} else {return "black"}})
+
+
+              fatBars
+              .enter().append("rect")
+              .attr("class", "fat")
+              .attr("x", 2*barMargin+barWidth)//xScale5(0.5) - 0.5*(barWidth+2*barMargin))
+              .attr('y', function (d) {return yScale5(d.fat);}) //(s) => yScale(s.ghge_portion))
+              .attr('height', function (d) {return plotHeight5 - yScale5(d.fat);})
+              .attr("width", barWidth)
+              .attr("fill", function(d){if (d.fat > 100){ return "red"} else {return "black"}})
+
+  var proteinBars = plot5.selectAll(".protein")
+                  .data(nut_dat)
+                  .attr("class", "protein")
+                  .attr("x", 4*barMargin+2*barWidth)//xScale5(0.75) - 0.5*(barWidth+2*barMargin))
+                  .attr('y', function (d) {return yScale5(d.protein);}) //(s) => yScale(s.ghge_portion))
+                  .attr('height', function (d) {return plotHeight5 - yScale5(d.protein);})
+                  .attr("width", barWidth)
+                  .attr("fill", function(d){if (d.protein > 100){ return "red"} else {return "black"}})
+
+
+      proteinBars
+      .enter().append("rect")
+      .attr("class", "protein")
+      .attr("x", 4*barMargin+2*barWidth)//xScale5(0.75) - 0.5*(barWidth+2*barMargin))
+      .attr('y', function (d) {return yScale5(d.protein);}) //(s) => yScale(s.ghge_portion))
+      .attr('height', function (d) {return plotHeight5 - yScale5(d.protein);})
+      .attr("width", barWidth)
+      .attr("fill", function(d){if (d.protein > 100){ return "red"} else {return "black"}})
+
+      var carbBars = plot5.selectAll(".carb")
+                      .data(nut_dat)
+                      .attr("class", "carb")
+                      .attr("x", 6*barMargin+3*barWidth)//xScale5(1) - 0.5*(barWidth+2*barMargin))
+                      .attr('y', function (d) {return yScale5(d.carb);}) //(s) => yScale(s.ghge_portion))
+                      .attr('height', function (d) {return plotHeight5 - yScale5(d.carb);})
+                      .attr("width", barWidth)
+                      .attr("fill", function(d){if (d.carb > 100){ return "red"} else {return "black"}})
+
+
+          carbBars
+          .enter().append("rect")
+          .attr("class", "carb")
+          .attr("x", 6*barMargin+3*barWidth)//xScale5(1) - 0.5*(barWidth+2*barMargin))
+          .attr('y', function (d) {return yScale5(d.carb);}) //(s) => yScale(s.ghge_portion))
+          .attr('height', function (d) {return plotHeight5 - yScale5(d.carb);})
+          .attr("width", barWidth)
+          .attr("fill", function(d){if (d.carb > 100){ return "red"} else {return "black"}})
+
+
+  function namearray(dat){
+    out = {ghge: 0,
+           kcal: 0,
+           fat: 0,
+           protein: 0,
+           carb: 0};
+    dat.forEach(function(d){
+      out.ghge += d.num_servings*d.ghge_portion //push(d.name)
+      out.kcal += 100*d.num_servings*d.kcal_portion/2000
+      out.fat += 100*d.num_servings*d.fat_portion/70
+      out.protein += 100*d.num_servings*d.protein_portion/50
+      out.carb += 100*d.num_servings*d.carb_portion/320
+    })
+    return [out];
+  }
+
   // var items = plateList.selectAll("li")
   //                      .data(dataPoint)
   //                      .enter()
@@ -535,13 +841,21 @@ function updateCircleColors(filteredData){
     xScale2.domain(dataSortedByGHGE.map(function(d){ return d.name; }))
     var xAxis = d3.axisBottom().scale(xScale2);
     plot2.selectAll(".xaxis")
-        .transition()
+        // .transition()
         .call(x_axis2)
         .selectAll("text")
           .style("text-anchor", "end")
           .attr("dx", "-.8em")
           .attr("dy", "-0.5em")
           .attr("transform", "rotate(-65)");
+
+  var maxY = d3.max(dataSortedByGHGE, function (d) { return d.ghge_portion; });
+  yScale2.domain([0, maxY + 0.05*maxY])
+  let y_axis2 = d3.axisLeft().scale(yScale2)
+  plot2.selectAll(".yaxis")
+      .transition()
+      .call(y_axis2)
+
 
      let bars = plot2.selectAll("rect")
      .data(dataSortedByGHGE, function(d){return d.name})
@@ -557,7 +871,6 @@ function updateCircleColors(filteredData){
                                  return undisplay(el, plot1, plot2)
                                })
       .on("click", function(){var el = this;
-                                console.log("good")
                                    return addToPlate(el)})
 
 
@@ -573,7 +886,6 @@ function updateCircleColors(filteredData){
                                  return undisplay(el, plot1, plot2)
                                })
      .on("click", function(){var el = this;
-                               console.log("good")
                                   return addToPlate(el)})
 
      bars.exit().remove();
@@ -614,10 +926,8 @@ function filterByServings(data) {
 };
 
 function addServing(data, name) {
-  console.log(name)
   data.forEach(function(d){
     if (d.name.toUpperCase() == name.toUpperCase()) {
-      console.log(d.name == name)
       d.num_servings = d.num_servings + 1;
     }
   })
