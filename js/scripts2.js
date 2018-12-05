@@ -218,7 +218,10 @@ function generateVis(csvData){
   function displayName (a, plot) {
     var xPos = a.cx.animVal.value;
     var yPos = a.cy.animVal.value;
+    var xPos2 = xScale2(d3.select(a).datum().name);
+    var yPos2 = yScale2(d3.select(a).datum().ghge_portion);
     var name = d3.select(a).datum().name;
+    var dataPoint = filterByName(csvData, name);
     var portion = d3.select(a).datum().portion_desc;
     var highlightedPoint = d3.select(a)
                              .attr("r", 4)
@@ -235,15 +238,52 @@ function generateVis(csvData){
                   .attr("class", "annotations")
                   .text(portion);
 
+    plot2.append("text")
+                   .attr("x", xPos2 - 4)
+                   .attr("y", yPos2 - 22)
+                   .attr("class", "annotations")
+                   .text(name);
+   plot2.append("text")
+                  .attr("x", xPos2 - 4)
+                  .attr("y", yPos2 - 8)
+                  .attr("class", "annotations")
+                  .text(portion);
+highlightBar(a)
 
  };
 
+ function highlightBar(a){//dataPoint){
+   var name = d3.select(a).datum().name;
+   var dataPoint = filterByName(csvData, name);
+        b = plot2.selectAll("rect")
+                  .data(dataPoint, function(d){return d.name})
+                  .attr("class", "highlight")
+                  .style("stroke", "black")
+                  .style("stroke-width", "1");
+                  b.enter()
+                  .attr("class", "highlight")
+                  .style("stroke", "black")
+                  .style("stroke-width", "1");
+
+                  b.exit()
+                  .style("opacity", 0.4)
+
+
+ }
+
  // Undoes the highlighting from displayName (removes stroke and tooltip)
  function undisplay (a, plot) {
+   var col = d3.select(a).datum().color
    d3.select(a)
      .attr("r", 2)
      .style("stroke-width", "0")
+   var bar = plot2.selectAll(".highlight")
+                  .style("stroke-width", "0")
+              // .attr("fill", col)//.remove();
+   plot2.selectAll("rect")
+        .style("opacity", 1)
    plot.selectAll(".annotations").remove();
+   plot2.selectAll(".annotations").remove();
  }
 
 function updateFoodGroup(filteredData, plot2) {
@@ -268,7 +308,6 @@ function updateCircleColors(filteredData){
 
                     circles
                     .on("mouseover",	function(){var el = this;
-                                                console.log(d3.select(this).attr("fill"))
                                                 if (d3.select(this).attr("fill") !== "gray"){
                                                 d3.select(this).moveToFront();
                                                   return displayName(el, plot1)
@@ -302,6 +341,10 @@ function updateCircleColors(filteredData){
      .attr('y', function (d) {return yScale2(d.ghge_portion);}) //(s) => yScale(s.ghge_portion))
      .attr('height', function (d) {return plotHeight2 - yScale2(d.ghge_portion);})
      .attr('width', xScale2.bandwidth())
+     .on("mouseover",	function(){return highlightBar(el, plot1)})
+     .on("mouseout", function(){var el = this;
+                                 return undisplay(el, plot1)
+                               })
 
 
      bars.enter().append("rect")
@@ -356,6 +399,13 @@ function filterByGroup(data, cat) {
     return filteredPoints;
 };
 
+// Filter data to only return data with a score above minimumScore
+function filterByName(data, name) {
+    var filteredPoints = data.filter(function (d) {
+      return d.name.toUpperCase() == name.toUpperCase()
+    });
+    return filteredPoints;
+};
 //Search with dropdown autofill
 //   //For dropdown code: https://bl.ocks.org/ProQuestionAsker/8382f70af7f4a7355827c6dc4ee8817d
 //   var dropdown1 = d3.select("#dropdown1div")
