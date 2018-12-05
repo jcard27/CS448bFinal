@@ -36,6 +36,7 @@ function loadData(loadedData){
                      } else if (d.protein> 0) {d.color = color = "orange"
                      } else if (d.bevarage> 0) {d.color = color = "purple"
                    } else {d.color = "cyan"}
+                   d.num_servings = 0;
                    })
    generateVis(csvData);
 };
@@ -191,7 +192,6 @@ function generateVis(csvData){
   var svg3 = d3.select('#plot3div').append('svg')
                 .attr("width", 2000)
                 .attr("height", plotHeight3+2*plotMargin1)
-
   let plot3 = svg3.append('g')
                  .attr('transform', `translate(${plotMargin3}, ${plotMargin3})`);
  let plot3title = plot3.append("text")
@@ -221,7 +221,6 @@ function generateVis(csvData){
                    .call(d3.axisBottom(xScale3));
    let yAxis3 = plot3.append('g')
                    .call(d3.axisLeft(yScale3));
-
    var dropdown3 = d3.select('#plot3dropdown').append("select")
                     .attr("class", "dropdown")
                     .attr("id", "dropdownCategory3")
@@ -229,12 +228,22 @@ function generateVis(csvData){
                                   var cat = document.getElementById("dropdownCategory3").value;
                                    var filteredData = filterByGroup(csvData, cat)
                                    return plotDat(filteredData, plot3, 0);})
- dropdown3.selectAll("option")
-                  .data(categories)
-                  .enter()
-                  .append("option")
-                  .text(function(d){return d})
-plotDat(csvData, plot3, 0)
+
+   let plate = svg3.append('g')
+   let plateList = plate.append("ul")
+   let servings = [];
+   let plateLabels = [];
+   let plateX = 500;
+   let plateY = 20;
+
+   dropdown3.selectAll("option")
+                    .data(categories)
+                    .enter()
+                    .append("option")
+                    .text(function(d){return d})
+  plotDat(csvData, plot3, 0)
+
+  // var foodBars = plot3.selectAll(bars)
 
   ///////////////////////////////////////////////////////
 
@@ -267,6 +276,81 @@ plotDat(csvData, plot3, 0)
 
 
   };
+
+function addToPlate(a) {
+  var name = d3.select(a).datum().name;
+  // console.log(csvData)
+  csvData = addServing(csvData, name)
+  // console.log(csvData)
+  var filteredPoints = filterByServings(csvData)
+  console.log(filteredPoints.length)
+  var dataPoint = filterByName(csvData, name);
+
+  var items = plate.selectAll("text")
+                   .data(filteredPoints, function(d){return d.name})
+                   .text(function(d){return d.num_servings + "X " + d.name + ", " + d.portion_desc})
+
+                   items.enter()
+                   .append("text")
+                   .attr("x", plateX)
+                   .attr("y", plateY + 15*filteredPoints.length)
+                   .text(function(d){return d.num_servings + "X " + d.name + ", " + d.portion_desc})
+  // var items = plateList.selectAll("li")
+  //                      .data(dataPoint)
+  //                      .enter()
+  //                      .append("li")
+  //                      .text(function(d){return d.name;});
+}
+  // function addToPlate(a) {
+  // // csvData.forEach(function(d){console.log(d.name)})
+  //   // plate.selectAll("text").data().forEach(function(d){console.log(d.name)})
+  //   plateY = plateY + 15
+  //   var portion = d3.select(a).datum().portion_desc;
+  //
+  //
+  //   // console.log(servings.toString() + "X " + plateItems)
+  //   // var plateStuff = [servings.toString() + "X " + plateItems]; //{names: plateItems, servings: servings.toString()}
+  //   // plateStuff.names = plateItems
+  //   // plateStuff.servings = servings.toString()
+  //   var name = d3.select(a).datum().name;
+  //   var dataPoint = filterByName(csvData, name);
+  //   var dat = plate.selectAll("text").data();
+  //
+  //   var plateItems = namearray(dat);
+  //   var ind = plateItems.indexOf(item)
+  //   if (ind < 0){
+  //     servings.push(1)
+  //   } else {
+  //     servings[ind] = servings[ind] + 1
+  //     plateLabels[ind] = servings[ind].toString() + "X " + plateItems[ind]
+  //   }
+  //
+  //   console.log(namearray(dat))
+  //   var items = plate.selectAll("text")
+  //        .data(dataPoint, function(d){return d.name})
+  //        // .attr("x", plateX)
+  //        // .attr("y", plateY)
+  //        // .text(function(d){return d.name})
+  //
+  //        items.enter()
+  //        .append("text")
+  //        .attr("x", plateX)
+  //        .attr("y", plateY)
+  //        .text(function(d){return d.name})
+  //
+  //        // items.enter()
+  //        // .append("text")
+  //        // .attr("x", plateX)
+  //        // .attr("y", plateY)
+  //        // .text(function(d){return d.name})
+  //       function namearray(dat){
+  //         out = [];
+  //         dat.forEach(function(d){
+  //           out.push(d.name)
+  //         })
+  //         return out;
+  //       }
+  // }
 
   function tooltip(a, plot, plot2, updateScatter){
     //   if (stage == 0) {
@@ -428,12 +512,14 @@ function updateCircleColors(filteredData){
      .attr('height', function (d) {return plotHeight2 - yScale2(d.ghge_portion);})
      .attr('width', xScale2.bandwidth())
      .on("mouseover",	function(){var el = this;
-                                  console.log("update")
                                   return tooltip(el, plot1, plot2, updateScatter)})
                                   // return highlightBar(el)})
      .on("mouseout", function(){var el = this;
                                  return undisplay(el, plot1, plot2)
                                })
+      .on("click", function(){var el = this;
+                                console.log("good")
+                                   return addToPlate(el)})
 
 
      bars.enter().append("rect")
@@ -443,11 +529,13 @@ function updateCircleColors(filteredData){
      .attr('height', function (d) {return plotHeight2 - yScale2(d.ghge_portion);})
      .attr('width', xScale2.bandwidth())
      .on("mouseover",	function(){var el = this;
-                                  console.log("update")
                                   return tooltip(el, plot1, plot2, updateScatter)})
      .on("mouseout", function(){var el = this;
                                  return undisplay(el, plot1, plot2)
-                               });
+                               })
+     .on("click", function(){var el = this;
+                               console.log("good")
+                                  return addToPlate(el)})
 
      bars.exit().remove();
 
@@ -478,6 +566,24 @@ function filterNames(data, str) {
     });
     return filteredPoints;
 };
+
+function filterByServings(data) {
+    var filteredPoints = data.filter(function (d) {
+      return d.num_servings > 0
+    });
+    return filteredPoints;
+};
+
+function addServing(data, name) {
+  console.log(name)
+  data.forEach(function(d){
+    if (d.name.toUpperCase() == name.toUpperCase()) {
+      console.log(d.name == name)
+      d.num_servings = d.num_servings + 1;
+    }
+  })
+  return data;
+}
 
 // Filter data to only return data with a score above minimumScore
 function filterByGroup(data, cat) {
