@@ -55,7 +55,7 @@ function generateVis(csvData){
 
   var svg1 = d3.select('#plot1div').append('svg')
                 .attr("width", 2000)
-                .attr("height", 1000)//"height", plotHeight1+2*plotMargin1)
+                .attr("height", 700)//"height", plotHeight1+2*plotMargin1)
     // .attr('width', plotWidth1 + plotMargin1*2)
     // .attr('height', plotHeight1 + plotMargin1*2);
 
@@ -175,7 +175,6 @@ function generateVis(csvData){
     let yAxis2 = plot2.append('g')
                     .call(d3.axisLeft(yScale2));
 
-
   var dropdown = d3.select('#plot2dropdown').append("select")
                    .attr("class", "dropdown")
                    .attr("id", "dropdownCategory")
@@ -183,31 +182,33 @@ function generateVis(csvData){
                                  var cat = document.getElementById("dropdownCategory").value;
                                   var filteredData = filterByGroup(csvData, cat)
                                   return updateFoodGroup(filteredData, plot2);})
+///////////////////////////////////////////////
 
-  var plotWidth3 = 100
-  var plotHeight3 = 200
+///////////////////////////////////////////////
+  var plotWidth3 = plotWidth2;//100
+  var plotHeight3 = plotHeight2;//200
+  var plotMargin3 = plotMargin1;
   var svg3 = d3.select('#plot3div').append('svg')
                 .attr("width", 2000)
                 .attr("height", plotHeight3+2*plotMargin1)
+
   let plot3 = svg3.append('g')
-                 .attr('transform', `translate(${plotMargin1}, ${4*plotMargin2+ plotHeight1})`);
+                 .attr('transform', `translate(${plotMargin3}, ${plotMargin3})`);
  let plot3title = plot3.append("text")
                          .attr("class", "plotTitle")
                          .attr("text-anchor", "middle")
                          .attr("x", plotWidth3/2)
                          .attr("y", -titleOffset)
-                         .text("Total Emissions")
+                         .text("Emmisions in Food Items")
    let plot3ylab = plot3.append("text")
                          .attr("transform", "rotate(-90)")
                          .attr("class", "axisLabel")
                          .attr("text-anchor", "middle")
                          .attr("x", -plotHeight3/2)
                          .attr("y",-axisOffset)
-                         .text("Total kg CO2 eq")
+                         .text("kg CO2 Equivalent per Serving")
    let innerPlotGroup3 = plot3.append('g');
    let outerPlotGroup3 = plot3.append('g');
-
-
    let xScale3 = d3.scaleLinear()
                   .domain([0,400])
                   .range([0, plotWidth3]);
@@ -216,37 +217,27 @@ function generateVis(csvData){
                  .range([plotHeight3, 0]);
    let xAxis3 = plot3.append('g')
                    .attr('transform', `translate(0, ${plotHeight3})`)
+                   .attr("class", "xaxis")
                    .call(d3.axisBottom(xScale3));
    let yAxis3 = plot3.append('g')
                    .call(d3.axisLeft(yScale3));
 
-   var dietDropdownFG = d3.select('#dietDropdownDiv').append("select")
-                 .attr("class", "dropdown")
-                 .attr("id", "dietDropdownFG")
-                 .on("change", function () {
-                                     var cat = document.getElementById("dietDropdownFG").value;
-                                    var filteredData = filterByGroup(csvData, cat)
-                                    // return updateDietFoodGroup(filteredData);
-                                  })
+   var dropdown3 = d3.select('#plot3dropdown').append("select")
+                    .attr("class", "dropdown")
+                    .attr("id", "dropdownCategory3")
+                    .on("change", function () {
+                                  var cat = document.getElementById("dropdownCategory3").value;
+                                   var filteredData = filterByGroup(csvData, cat)
+                                   return plotDat(filteredData, plot3, 0);})
+ dropdown3.selectAll("option")
+                  .data(categories)
+                  .enter()
+                  .append("option")
+                  .text(function(d){return d})
+plotDat(csvData, plot3, 0)
 
-  var foodOptions = dietDropdownFG.selectAll("option")
-                     .data(categories)
-                     .enter()
-                     .append("option")
-                     .text(function(d){return d.name})
-    var dietDropdown = d3.select('#dietDropdownDiv').append("select")
-                  .attr("class", "dropdown")
-                  .attr("id", "dietDropdown")
-                  .on("change", function () {
-                                var name = document.getElementById("dietDropdown").value;
-                                 var filteredData = filterByName(csvData, name)})
+  ///////////////////////////////////////////////////////
 
-                                 // return updateFoodGroup(filteredData, plot2);})
-   var foodOptions = dietDropdown.selectAll("option")
-                      .data(csvData)
-                      .enter()
-                      .append("option")
-                      .text(function(d){return d.name})
 
   addCircles(csvData, innerPlotGroup1, "plot1AllCircles", xScale, yScale);
   updateCircleColors(csvData)
@@ -258,7 +249,7 @@ function generateVis(csvData){
                    .append("option")
                    .text(function(d){return d})
 
- plotDat(csvData, plot2)
+ plotDat(csvData, plot2, 1)
  updateFoodGroup(csvData, plot2)
 
   //Add circles to plot1
@@ -277,9 +268,13 @@ function generateVis(csvData){
 
   };
 
-  function tooltip(a, plot){
+  function tooltip(a, plot, plot2, updateScatter){
+    //   if (stage == 0) {
+      if (updateScatter > 0){
       displayName(a, plot);
-      highlightBar(a);
+    }
+
+      highlightBar(a, plot2);
   }
 
   // Highights circle with stroke and display tooltip
@@ -323,41 +318,38 @@ function generateVis(csvData){
                   .text(portion);
  };
 
- function highlightBar(a){
+ function highlightBar(a, plot){
    var xPos2 = xScale2(d3.select(a).datum().name);
    var yPos2 = yScale2(d3.select(a).datum().ghge_portion);
    var name = d3.select(a).datum().name;
    var dataPoint = filterByName(csvData, name);
    var portion = d3.select(a).datum().portion_desc;
-        b = plot2.selectAll("rect")
+   var b = plot.selectAll("rect")
                   .data(dataPoint, function(d){return d.name})
                   .attr("class", "highlight")
                   .style("stroke", "black")
                   .style("stroke-width", "1");
-                  b.enter()
-                  .attr("class", "highlight")
-                  .style("stroke", "black")
-                  .style("stroke-width", "1");
+      b.enter()
+      .attr("class", "highlight")
+      .style("stroke", "black")
+      .style("stroke-width", "1");
+      b.exit()
+        .style("opacity", 0.4)
 
-                  b.exit()
-                  .style("opacity", 0.4)
-
-                  plot2.append("text")
-                                 .attr("x", xPos2 - 4)
-                                 .attr("y", yPos2 - 22)
-                                 .attr("class", "annotations")
-                                 .text(name);
-                 plot2.append("text")
-                                .attr("x", xPos2 - 4)
-                                .attr("y", yPos2 - 8)
-                                .attr("class", "annotations")
-                                .text(portion);
-
-
- }
+      plot.append("text")
+                     .attr("x", xPos2 - 4)
+                     .attr("y", yPos2 - 22)
+                     .attr("class", "annotations")
+                     .text(name);
+     plot.append("text")
+                    .attr("x", xPos2 - 4)
+                    .attr("y", yPos2 - 8)
+                    .attr("class", "annotations")
+                    .text(portion);
+  }
 
  // Undoes the highlighting from displayName (removes stroke and tooltip)
- function undisplay (a, plot) {
+ function undisplay (a, plot1, plot2) {
    // var col = d3.select(a).datum().color
    // d3.select(a)
    //   .attr("r", 2)
@@ -375,12 +367,12 @@ function generateVis(csvData){
               .attr("class", "plot1AllCircles")
               .style("stroke-width", 0)
              .style("opacity", 1)
-   plot.selectAll(".annotations").remove();
+   plot1.selectAll(".annotations").remove();
    plot2.selectAll(".annotations").remove();
  }
 
-function updateFoodGroup(filteredData, plot2) {
-  plotDat(filteredData, plot2)
+function updateFoodGroup(filteredData, plot) {
+  plotDat(filteredData, plot, 1)
   updateCircleColors(filteredData)
 }
 
@@ -403,15 +395,15 @@ function updateCircleColors(filteredData){
                     .on("mouseover",	function(){var el = this;
                                                 if (d3.select(this).attr("fill") !== "gray"){
                                                 d3.select(this).moveToFront();
-                                                return tooltip(el, plot1)
+                                                return tooltip(el, plot1, plot2, 1)
                                                   // return displayName(el, plot1)
                                                 }})
                     .on("mouseout", function(){var el = this;
-                                                return undisplay(el, plot1)
+                                                return undisplay(el, plot1, plot2)
                                               })
 
   }
-  function plotDat(csvData, plot2){
+  function plotDat(csvData, plot2, updateScatter){
 
     dataSortedByGHGE = csvData.sort(function(x, y){
        return d3.descending(x.ghge_portion, y.ghge_portion);
@@ -437,10 +429,10 @@ function updateCircleColors(filteredData){
      .attr('width', xScale2.bandwidth())
      .on("mouseover",	function(){var el = this;
                                   console.log("update")
-                                  return tooltip(el, plot1)})
+                                  return tooltip(el, plot1, plot2, updateScatter)})
                                   // return highlightBar(el)})
      .on("mouseout", function(){var el = this;
-                                 return undisplay(el, plot1)
+                                 return undisplay(el, plot1, plot2)
                                })
 
 
@@ -452,9 +444,9 @@ function updateCircleColors(filteredData){
      .attr('width', xScale2.bandwidth())
      .on("mouseover",	function(){var el = this;
                                   console.log("update")
-                                  return tooltip(el, plot1)})
+                                  return tooltip(el, plot1, plot2, updateScatter)})
      .on("mouseout", function(){var el = this;
-                                 return undisplay(el, plot1)
+                                 return undisplay(el, plot1, plot2)
                                });
 
      bars.exit().remove();
