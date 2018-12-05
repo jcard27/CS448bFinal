@@ -247,6 +247,45 @@ function generateVis(csvData){
 
   ///////////////////////////////////////////////////////
 
+  //////////////////////////////////////////////
+    var plotWidth4 = 100
+    var plotHeight4 = plotHeight2;//200
+    var plotMargin4 = plotMargin1;
+    // var svg3 = d3.select('#plot3div').append('svg')
+    //               .attr("width", 2000)
+    //               .attr("height", plotHeight3+2*plotMargin1)
+    let plot4 = svg3.append('g')
+                   .attr('transform', `translate(${2*plotMargin3+ plotWidth3}, ${plotMargin3})`);
+   let plot4title = plot4.append("text")
+                           .attr("class", "plotTitle")
+                           .attr("text-anchor", "middle")
+                           .attr("x", plotWidth4/2)
+                           .attr("y", -titleOffset)
+                           .text("Total Emissions")
+     let plot4ylab = plot4.append("text")
+                           .attr("transform", "rotate(-90)")
+                           .attr("class", "axisLabel")
+                           .attr("text-anchor", "middle")
+                           .attr("x", -plotHeight4/2)
+                           .attr("y",-axisOffset)
+                           .text("kg CO2 Equivalent")
+     let innerPlotGroup4 = plot4.append('g');
+     let outerPlotGroup4 = plot4.append('g');
+     let xScale4 = d3.scaleLinear()
+                    .domain([0,400])
+                    .range([0, plotWidth4]);
+     let yScale4 = d3.scaleLinear()
+                   .domain([0,3.5])
+                   .range([plotHeight4, 0]);
+     let xAxis4 = plot4.append('g')
+                     .attr('transform', `translate(0, ${plotHeight4})`)
+                     .attr("class", "xaxis")
+                     .call(d3.axisBottom(xScale4));
+     let yAxis4 = plot4.append('g')
+                     .call(d3.axisLeft(yScale4));
+
+    ///////////////////////////////////////////////////////
+
 
   addCircles(csvData, innerPlotGroup1, "plot1AllCircles", xScale, yScale);
   updateCircleColors(csvData)
