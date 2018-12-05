@@ -27,15 +27,15 @@ function parseInputRow (d) {
 function loadData(loadedData){
    var csvData = loadedData
    csvData.forEach(function(d) {
-                     if (d.fruit > 0) {d.color = color = "pink"
-                     } else if (d.veg > 0) {d.color = color = "green"
-                     } else if (d.dairy > 0) {d.color = color = "blue"
-                     } else if (d.meat > 0) {d.color = color = "red"
-                     } else if (d.grain > 0) {d.color = color = "brown"
-                     } else if (d.oil> 0) {d.color = color = "yellow"
-                     } else if (d.protein> 0) {d.color = color = "orange"
-                     } else if (d.bevarage> 0) {d.color = color = "purple"
-                   } else {d.color = "cyan"}
+                     if (d.fruit > 0) {d.color = color = "#f781bf"
+                   } else if (d.veg > 0) {d.color = color = "#4daf4a"
+                     } else if (d.dairy > 0) {d.color = color = "#377eb8"
+                     } else if (d.meat > 0) {d.color = color = "#e41a1c"
+                   } else if (d.grain > 0) {d.color = color = "#a65628"
+                     } else if (d.oil> 0) {d.color = color = "#ffff33"
+                     } else if (d.protein> 0) {d.color = color = "#ff7f00"
+                     } else if (d.bevarage> 0) {d.color = color = "#a65628"
+                   } else {d.color = "#80b1d3"}
                    d.num_servings = 0;
                    })
    generateVis(csvData);
@@ -275,7 +275,7 @@ function generateVis(csvData){
     //               .attr("width", 2000)
     //               .attr("height", plotHeight3+2*plotMargin1)
     let plot4 = svg3.append('g')
-                   .attr('transform', `translate(${2*plotMargin3+ 1.5*plotWidth3}, ${plotMargin3})`);
+                   .attr('transform', `translate(${2*plotMargin3+ 1.5*plotWidth3 + 150}, ${plotMargin3})`);
    // let plot4title = plot4.append("text")
    //                         .attr("class", "plotTitle")
    //                         .attr("text-anchor", "middle")
@@ -321,43 +321,44 @@ function generateVis(csvData){
                      .call(d3.axisLeft(yScale4));
 
 
+     let runnover = 50;
      let q1_ref = plot4.append("line")
                                .attr("class", "refLine")
-                               .attr("width", plotWidth4)
+                               .attr("width", plotWidth4+runnover)
                                .attr("x1", 0)
-                               .attr("x2", plotWidth4)
+                               .attr("x2", plotWidth4+runnover)
                                .attr("y1", yScale4(q1))
                                .attr("y2", yScale4(q1))
      let q1_txt = plot4.append("text")
                            .attr("class", "refAnnotation")
                            .attr("text-anchor", "end")
-                           .attr("x", plotWidth4)
+                           .attr("x", plotWidth4+runnover)
                            .attr("y", yScale4(q1) - refAnnotationOffset)
                            .text("1st Quintile")
    let med_ref = plot4.append("line")
                              .attr("class", "refLine")
-                             .attr("width", plotWidth4)
+                             .attr("width", plotWidth4+runnover)
                              .attr("x1", 0)
-                             .attr("x2", plotWidth4)
+                             .attr("x2", plotWidth4+runnover)
                              .attr("y1", yScale4(med))
                              .attr("y2", yScale4(med))
    let med_txt = plot4.append("text")
                          .attr("class", "refAnnotation")
                          .attr("text-anchor", "end")
-                         .attr("x", plotWidth4)
+                         .attr("x", plotWidth4+runnover)
                          .attr("y", yScale4(med) - refAnnotationOffset)
                          .text("Median")
    let q5_ref = plot4.append("line")
                              .attr("class", "refLine")
-                             .attr("width", plotWidth4)
+                             .attr("width", plotWidth4+runnover)
                              .attr("x1", 0)
-                             .attr("x2", plotWidth4)
+                             .attr("x2", plotWidth4+runnover)
                              .attr("y1", yScale4(q5))
                              .attr("y2", yScale4(q5))
    let q5_txt = plot4.append("text")
                          .attr("class", "refAnnotation")
                          .attr("text-anchor", "end")
-                         .attr("x", plotWidth4)
+                         .attr("x", plotWidth4+runnover)
                          .attr("y", yScale4(q5) - refAnnotationOffset)
                          .text("5th Quintile")
 
@@ -373,7 +374,7 @@ function generateVis(csvData){
       //               .attr("width", 2000)
       //               .attr("height", plotHeight3+2*plotMargin1)
       let plot5 = svg3.append('g')
-                     .attr('transform', `translate(${2*plotMargin3+ plotWidth3 + plotWidth4 + plotMargin4}, ${plotMargin3})`);
+                     .attr('transform', `translate(${plotWidth3 + plotWidth4 + 700}, ${plotMargin3})`);
      // let plot4title = plot4.append("text")
      //                         .attr("class", "plotTitle")
      //                         .attr("text-anchor", "middle")
@@ -517,28 +518,45 @@ function addToPlate(a) {
   var filteredPoints = filterByServings(csvData)
   var dataPoint = filterByName(csvData, name);
 
+  var yPos = plateY + 15*filteredPoints.length;
+
   var items = plate.selectAll("text")
                    .data(filteredPoints, function(d){return d.name})
+                   .attr("class", "plateText")
                    .text(function(d){return d.num_servings + "X " + d.name + ", " + d.portion_desc})
+                   .on("click", function(d){  d3.select(this).remove();
+                                              removeServing(csvData, d3.select(this).datum().name)
+                                              filteredData = filterByServings(csvData)
+                                              updateBars()})
+                   // .on("click", function(d){  d3.select(this).moveToFront();})
 
                    items.enter()
                    .append("text")
+                   .attr("class", "plateText")
                    .attr("x", plateX)
-                   .attr("y", plateY + 15*filteredPoints.length)
+                   .attr("y", yPos)
                    .text(function(d){return d.num_servings + "X " + d.name + ", " + d.portion_desc})
+                   .on("click", function(d){  d3.select(this).remove();
+                                              removeServing(csvData, d3.select(this).datum().name)
+                                              filteredData = filterByServings(csvData)
+                                              updateBars()})
+                   // .on("click", function(d){  d3.select(this).moveToFront();})
   // console.log(dat)
-  var nut_dat = namearray(filteredPoints)
+
   console.log(filteredPoints)
   // console.log(yScale5(nut_dat.kcal))
 
+updateBars()
 
+function updateBars (){
+  var nut_dat = namearray(filteredPoints)
   var bars4 = plot4.selectAll("rect")
                   .data(nut_dat)
                   .attr("x", xScale4(0.5) - 0.5*barWidth)
                   .attr('y', function (d) {return yScale4(d.ghge);}) //(s) => yScale(s.ghge_portion))
                   .attr('height', function (d) {return plotHeight4 - yScale4(d.ghge);})
                   .attr("width", barWidth)
-                  .attr("fill", "black")
+                  .attr("fill", function(d){if (d.ghge > med){ return "red"} else {return "black"}})
 
       bars4
       .enter().append("rect")
@@ -546,7 +564,7 @@ function addToPlate(a) {
       .attr('y', function (d) {return yScale4(d.ghge);}) //(s) => yScale(s.ghge_portion))
       .attr('height', function (d) {return plotHeight4 - yScale4(d.ghge);})
       .attr("width", barWidth)
-      .attr("fill", "black")
+      .attr("fill", function(d){if (d.ghge > med){ return "red"} else {return "black"}})
 
       var kcalBars = plot5.selectAll(".kcal")
                       .data(nut_dat)
@@ -622,7 +640,7 @@ function addToPlate(a) {
           .attr('height', function (d) {return plotHeight5 - yScale5(d.carb);})
           .attr("width", barWidth)
           .attr("fill", function(d){if (d.carb > 100){ return "red"} else {return "black"}})
-
+}
 
   function namearray(dat){
     out = {ghge: 0,
@@ -929,6 +947,15 @@ function addServing(data, name) {
   data.forEach(function(d){
     if (d.name.toUpperCase() == name.toUpperCase()) {
       d.num_servings = d.num_servings + 1;
+    }
+  })
+  return data;
+}
+
+function removeServing(data, name) {
+  data.forEach(function(d){
+    if (d.name.toUpperCase() == name.toUpperCase()) {
+      d.num_servings = d.num_servings - 1;
     }
   })
   return data;
