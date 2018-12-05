@@ -35,7 +35,7 @@ function loadData(loadedData){
                      } else if (d.oil> 0) {d.color = color = "yellow"
                      } else if (d.protein> 0) {d.color = color = "orange"
                      } else if (d.bevarage> 0) {d.color = color = "purple"
-                     } else {d.color = "gray"}
+                   } else {d.color = "cyan"}
                    })
    generateVis(csvData);
 };
@@ -47,11 +47,17 @@ function generateVis(csvData){
   let refAnnotationOffset = 2;
   let plotMargin1 = 100;
   let plotWidth1 = 300; //500;
-  let plotHeight1 = 500; //500;
+  let plotHeight1 = 300; //500;
+  let plotMargin2 = 100;
+  let plotWidth2 = 500; //500;
+  let plotHeight2 = plotHeight1; //500;
+  // let barWidth = 30;
 
   var svg1 = d3.select('#plot1div').append('svg')
-    .attr('width', plotWidth1 + plotMargin1*2)
-    .attr('height', plotHeight1 + plotMargin1*2);
+                .attr("width", 2000)
+                .attr("height", 2000)
+    // .attr('width', plotWidth1 + plotMargin1*2)
+    // .attr('height', plotHeight1 + plotMargin1*2);
 
   let plot1 = svg1.append('g')
                  .attr('transform', `translate(${plotMargin1}, ${plotMargin1})`);
@@ -115,10 +121,7 @@ function generateVis(csvData){
                           .attr("y", yScale(5*0.41) - refAnnotationOffset)
                           .text("5 Miles Driven in Car")
 
-  let plotMargin2 = 100;
-  let plotWidth2 = 800; //500;
-  let plotHeight2 = 200; //500;
-  let barWidth = 30;
+
 
   var categories = ["All Foods", "Fruits", "Vegetables", "Grains", "Dairy", "Protein", "Meat", "Beverage"];
   // Add an SVG element to the DOM
@@ -127,8 +130,10 @@ function generateVis(csvData){
               .attr('width', plotWidth2 + plotMargin2*2)
               .attr('height', plotHeight2 + plotMargin2*2);
 
-  let plot2 = svg2.append('g')
-                 .attr('transform', `translate(${plotMargin2}, ${plotMargin2})`);
+  // let plot2 = svg2.append('g')
+  //                .attr('transform', `translate(${plotMargin2}, ${plotMargin2})`);
+  let plot2 = svg1.append('g')
+                 .attr('transform', `translate(${plotMargin2+plotMargin1+plotWidth1}, ${plotMargin2})`);
 
    let plot2title = plot2.append("text")
                          .attr("class", "plotTitle")
@@ -183,6 +188,8 @@ function generateVis(csvData){
 
 
   addCircles(csvData, innerPlotGroup1, "plot1AllCircles", xScale, yScale);
+  updateCircleColors(csvData)
+
   dropdown.selectAll("option")
                    .data(categories)
                    .enter()
@@ -202,13 +209,6 @@ function generateVis(csvData){
             .attr("fill", function(d) {return d.color;})
             .attr("cx", function (d) {return xScale(d.kcal_portion);})
             .attr("cy", function (d) {return yScale(d.ghge_portion);})
-            .on("mouseover",	function(){var el = this;
-                                        d3.select(this).moveToFront();
-                                          return displayName(el, plot1)
-                                        })
-            .on("mouseout", function(){var el = this;
-                                        return undisplay(el, plot1)
-                                      })
      circles.exit().remove();
 
 
@@ -257,7 +257,6 @@ function updateCircleColors(filteredData){
                     .attr("fill", function(d){return d.color})
                     .moveToFront()
 
-
                     circles.enter()
                     .attr("cx", function (d) {return xScale(d.kcal_portion);})
                     .attr("cy", function (d) {return yScale(d.ghge_portion);})
@@ -269,9 +268,11 @@ function updateCircleColors(filteredData){
 
                     circles
                     .on("mouseover",	function(){var el = this;
+                                                console.log(d3.select(this).attr("fill"))
+                                                if (d3.select(this).attr("fill") !== "gray"){
                                                 d3.select(this).moveToFront();
                                                   return displayName(el, plot1)
-                                                })
+                                                }})
                     .on("mouseout", function(){var el = this;
                                                 return undisplay(el, plot1)
                                               })
