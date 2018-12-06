@@ -1,3 +1,11 @@
+var bodyText = "The food industry is a major source of world greenhouse gas emissions (GHGE). " +
+"According to a study by the IPCC, an estimated 10-12% of world GHGEs come from " +
+"agriculture ignoring fuel use, fertilizers, and land changes, and accounting for these factors, "+
+"the estimate grows to 30%. When it comes to enironmental imact, not all foods are created equal."+
+"A recent study by researcher at the University of Michigan (Heller et. al, 2018)" +
+"showed that just 20% of the population makes up for almost half of food related emissions in the "+
+"US. It's no surprise that the blame isn't easily distributed, since there are several outlier foods "+
+"that make up for a disproportionate amoount of emissions. Click through the food groups to learn more."
 //Load data
 d3.csv("/data/filtered_finalProjectDataset.csv", parseInputRow).then(loadData);
 
@@ -48,14 +56,16 @@ function generateVis(csvData){
   let refAnnotationOffset = 2;
   let plotMargin1 = 100;
   let plotWidth1 = 300; //500;
-  let plotHeight1 = 300; //500;
+  let plotHeight1 = 200; //500;
   let plotMargin2 = 100;
   let plotWidth2 = 500; //500;
   let plotHeight2 = plotHeight1; //500;
 
   var svg0 = d3.select('#intro').append('svg')
                 .attr("width", 2000)
-                .attr("height", 300)
+                .attr("height", 150)
+  var txtGroup = svg0.append('g')
+
   // var intro = svg0.append("text")
   //                 .text(/text/intro.txt)
   var svg1 = d3.select('#plot1div').append('svg')
@@ -128,13 +138,14 @@ function generateVis(csvData){
 
 
 
-  var categories = ["All Foods", "Fruits", "Vegetables", "Grains", "Dairy", "Protein", "Meat", "Beverage"];
+  var categories = ["All Foods","Meat", "Protein", "Beverage" ,"Dairy","Fruits", "Vegetables", "Grains"];
   // Add an SVG element to the DOM
 
-  var svg2 = d3.select('#plot2div').append('svg')
-              .attr('width', plotWidth2 + plotMargin2*2)
-              .attr('height', plotHeight2 + plotMargin2*2);
-
+//   var svg2 = d3.select('#plot2div').append('svg')
+//               .attr('width', plotWidth2 + plotMargin2*2)
+//               .attr('height', plotHeight2 + plotMargin2*2);
+// var tooldesc = svg2.append('g')
+// tooldesc.append("text").text("hello").attr("class", "description")
   // let plot2 = svg2.append('g')
   //                .attr('transform', `translate(${plotMargin2}, ${plotMargin2})`);
   let plot2 = svg1.append('g')
@@ -249,12 +260,15 @@ function generateVis(csvData){
                                    var filteredData = filterByGroup(csvData, cat)
                                    return plotDat(filteredData, plot3, 0);})
 
-   let plate = svg3.append('g')
+   var svg6 = d3.select('#plot6div').append('svg')
+                 .attr("width", 2000)
+                 .attr("height", plotHeight3+2*plotMargin1)
+   let plate = svg6.append('g')
    let plateList = plate.append("ul")
    let servings = [];
    let plateLabels = [];
-   let plateX = 500;
-   let plateY = 20;
+   let plateX = plotMargin3//plotWidth3+plotMargin3*2;
+   let plateY = 20//plotHeight3+100//20;
 
    dropdown3.selectAll("option")
                     .data(categories)
@@ -263,7 +277,7 @@ function generateVis(csvData){
                     .text(function(d){return d})
   plotDat(csvData, plot3, 0)
 
-  // var foodBars = plot3.selectAll(bars)
+
 
   ///////////////////////////////////////////////////////
 
@@ -275,7 +289,7 @@ function generateVis(csvData){
     //               .attr("width", 2000)
     //               .attr("height", plotHeight3+2*plotMargin1)
     let plot4 = svg3.append('g')
-                   .attr('transform', `translate(${2*plotMargin3+ 1.5*plotWidth3 + 150}, ${plotMargin3})`);
+                   .attr('transform', `translate(${2*plotMargin3+ 1.5*plotWidth3 - 50}, ${plotMargin3})`);
    // let plot4title = plot4.append("text")
    //                         .attr("class", "plotTitle")
    //                         .attr("text-anchor", "middle")
@@ -374,7 +388,7 @@ function generateVis(csvData){
       //               .attr("width", 2000)
       //               .attr("height", plotHeight3+2*plotMargin1)
       let plot5 = svg3.append('g')
-                     .attr('transform', `translate(${plotWidth3 + plotWidth4 + 700}, ${plotMargin3})`);
+                     .attr('transform', `translate(${plotWidth3 + plotWidth4 + 450}, ${plotMargin3})`);
      // let plot4title = plot4.append("text")
      //                         .attr("class", "plotTitle")
      //                         .attr("text-anchor", "middle")
@@ -395,10 +409,23 @@ function generateVis(csvData){
      //                       .attr("y", plotHeight4 + axisOffset)
      //                       .text("Total Emissions")
 
-      let nut_cats = ["Calories", "Fat", "Protein", "Carbohydrates"]
-       let xScale5 = d3.scaleLinear()
-                      .domain(nut_cats.map(function(d){ return d; }))
-                      .range([0, plotWidth4]);
+      let nut_cats = [{name: "Calories"},
+      {name: "Fat"}, {name: "Protein"}, {name: "Carbs"}];//Calories", "Fat", "Protein", "Carbohydrates"]
+      console.log(nut_cats.map(function(d){ return d.name; }))
+       // let xScale5 = d3.scaleLinear()
+       //                .domain(nut_cats.map(function(d){ return d; }))
+       //                .range([0, plotWidth4]);
+       //
+       //                // let xAxis5 = plot5.append('g')
+       //                //                 .call(d3.axisBottom(xScale5));
+       //                let x_axis5 = d3.axisBottom().scale(xScale5);
+       //                let xAxis5 = plot5.append('g')
+       //                                 .attr("class", "xaxis")
+       //                                .attr('transform', `translate(0, ${plotHeight5})`)
+       //                                .call(x_axis5)
+       //                                .selectAll("text")
+       //                             .style("text-anchor", "end")
+       //                             .attr("transform", "rotate(-90)");
        let yScale5 = d3.scaleLinear()
                      .domain([0,150])
                      .range([plotHeight4, 0]);
@@ -415,8 +442,32 @@ function generateVis(csvData){
                         .attr("x2", plotWidth5)
                         .attr("y1", plotHeight5)
                         .attr("y2", plotHeight5)
+      plot5.append("text")
+                        .attr("y", plotHeight5+20)
+                        .attr("class", "ticks")
+                        .text("KCal")
+
+                        plot5.append("text")
+                        .attr("x", barWidth+2*barMargin+5)
+                        .attr("y", plotHeight5+20)
+                        .attr("class", "ticks")
+                        .text("Fat")
+
+                        plot5.append("text")
+                        .attr("x", 2*(barWidth+2*barMargin) - 2)
+                        .attr("y", plotHeight5+20)
+                        .attr("class", "ticks")
+                        .text("Protein")
+
+                        plot5.append("text")
+                        .attr("x", 3*(barWidth+2*barMargin)+5)
+                        .attr("y", plotHeight5+20)
+                        .attr("class", "ticks")
+                        .text("Carbs")
+
        let yAxis5 = plot5.append('g')
                        .call(d3.axisLeft(yScale5));
+
 
        let dv_ref = plot5.append("line")
                                  .attr("class", "refLine")
@@ -492,8 +543,26 @@ function generateVis(csvData){
 
       ////////////////////////////////////////////////
 
+updateText(bodyText)
+
+function updateText(words){
 
 
+
+
+  // var words = txtGroup.append("text")
+  //                     .attr("x", 20)
+  //                     .attr("y", 20)
+  //                     .text(intro)
+
+ var words = d3.select("#intro").selectAll("p")
+                .text(words)
+  // svg0.selectAll("text").append("text")
+  //     .attr("class", "description")
+  //     .text(intro)
+      //  .data(intro)
+      // .enter
+}
   //Add circles to plot1
   function addCircles(filteredPoints, plot, circleClass, xScale, yScale) {
       var circles = plot.selectAll("circle")
@@ -524,9 +593,14 @@ function addToPlate(a) {
                    .data(filteredPoints, function(d){return d.name})
                    .attr("class", "plateText")
                    .text(function(d){return d.num_servings + "X " + d.name + ", " + d.portion_desc})
-                   .on("click", function(d){  d3.select(this).remove();
-                                              removeServing(csvData, d3.select(this).datum().name)
+                   .on("click", function(d){removeServing(csvData, d3.select(this).datum().name)
                                               filteredData = filterByServings(csvData)
+                                              if (d3.select(this).datum().num_servings == 0){
+                                              d3.select(this).remove();}
+                                              else {plate.selectAll("text")
+                                                               .data(filteredData, function(d){return d.name})
+                                                               .attr("class", "plateText")
+                                                               .text(function(d){return d.num_servings + "X " + d.name + ", " + d.portion_desc})}
                                               updateBars()})
                    // .on("click", function(d){  d3.select(this).moveToFront();})
 
@@ -821,6 +895,7 @@ function updateBars (){
 function updateFoodGroup(filteredData, plot) {
   plotDat(filteredData, plot, 1)
   updateCircleColors(filteredData)
+  updateText(bodyText)
 }
 
 function updateCircleColors(filteredData){
@@ -964,14 +1039,53 @@ function removeServing(data, name) {
 // Filter data to only return data with a score above minimumScore
 function filterByGroup(data, cat) {
     var filteredPoints = data.filter(function (d) {
-      if (cat.toUpperCase() == "FRUITS") {return d.fruit > 0
-      } else if ( cat.toUpperCase() == "VEGETABLES") {return d.veg > 0
-      } else if (cat.toUpperCase() == "DAIRY") {return d.dairy > 0
-      } else if (cat.toUpperCase() == "MEAT") {return d.meat > 0
-      } else if (cat.toUpperCase() == "PROTEIN") {return d.protein > 0
-      } else if (cat.toUpperCase() == "BEVERAGE") {return d.beverage > 0
-      } else if (cat.toUpperCase() == "GRAINS") {return d.grain > 0
-      } else {return d}
+      if (cat.toUpperCase() == "FRUITS") {
+        bodyText = "When it comes to fruits, there are a few outliers that are "+
+        "much more carbon intensive than alternatives. Choose apples or oranges "+
+        "instead of guava or watermelon."
+        return d.fruit > 0
+      } else if ( cat.toUpperCase() == "VEGETABLES") {
+        bodyText = "Like the fruits, vegegables are relatively low on emissions "+
+        "already. Leafy greens are the best option for a low-carbon diet."
+        return d.veg > 0
+      } else if (cat.toUpperCase() == "DAIRY") {
+        bodyText = "While dairy products aren't as carbon intensive as meats, " +
+        "GHGE from dairy can still add up fast. A serving of milk, cheese, or yogurt "+
+        "equates to almost 1 mile of driving in an average car."
+        return d.dairy > 0
+      } else if (cat.toUpperCase() == "MEAT") {
+        bodyText = "Meats are the largest contributer to greenhouse gas emissions. " +
+        "Just a single serving of lamb, beef, or crustacean (e.g. lobster, shrimp) is "+
+        "the GHGE equivalent of driving over 5 miles in an average car today. "
+        "Fortunately, there is a wide spread in the amount of GHGE per serving between "+
+        "different options. Choose turkey instead of beef, and you cut your emissions by almost "+
+        "a factor of 10."
+      return d.meat > 0
+      } else if (cat.toUpperCase() == "PROTEIN") {
+        bodyText = "Looking beyond meats to other sources of protein means "+
+        "tremendous opportunity to cut down on GHGE. Plant based proteins like "+
+        "nuts and beans are generally much lower in emissions than meats."
+
+        return d.protein > 0
+      } else if (cat.toUpperCase() == "BEVERAGE") {
+        bodyText = "Beverages are relatively high in emissions compared to other "+
+        "food groups. Choose water, coffee, or tea instead of highly processed "
+        +"fruit juices or milk if you want to lower your carbon impact."
+        return d.beverage > 0
+      } else if (cat.toUpperCase() == "GRAINS") {
+        bodyText = "Grains are very low on emissions compared to their calorie density. "+
+        "These probably won't be the make or break in your diet choices with respect to emissions."
+        return d.grain > 0
+      } else {
+        bodyText = "The food industry is a major source of world greenhouse gas emissions (GHGE). " +
+        "According to a study by the IPCC, an estimated 10-12% of world GHGEs come from " +
+        "agriculture ignoring fuel use, fertilizers, and land changes, and accounting for these factors, "+
+        "the estimate grows to 30%. When it comes to enironmental imact, not all foods are created equal."+
+        "A recent study by researcher at the University of Michigan (Heller et. al, 2018)" +
+        "showed that just 20% of the population makes up for almost half of food related emissions in the "+
+        "US. It's no surprise that the blame isn't easily distributed, since there are several outlier foods "+
+        "that make up for a disproportionate amoount of emissions. Click through the food groups to learn more."
+        return d}
     });
     return filteredPoints;
 };
