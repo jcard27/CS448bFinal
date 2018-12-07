@@ -86,6 +86,8 @@ var scrollVis = function () {
       var maxYBar = d3.max(dataSortedByGHGE, function (d) { return d.ghge_portion; });
       yBarScale.domain([0, maxYBar + 0.05*maxYBar])
       xBarScale.domain(dataSortedByGHGE.map(function(d){ return d.name; }))
+
+
       // console.log(xBarScale(dataSortedByGHGE[0].name))
       console.log(yBarScale(1))
 
@@ -145,23 +147,6 @@ var scrollVis = function () {
     g.selectAll('.count-title')
       .attr('opacity', 0);
 
-    // // square grid
-    // // @v4 Using .merge here to ensure
-    // // new and old data have same attrs applied
-    // var squares = g.selectAll('.square').data(wordData, function (d) { return d.word; });
-    // var squaresE = squares.enter()
-    //   .append('rect')
-    //   .classed('square', true);
-    // squares = squares.merge(squaresE)
-    //   .attr('width', squareSize)
-    //   .attr('height', squareSize)
-    //   .attr('fill', '#fff')
-    //   .classed('fill-square', function (d) { return d.filler; })
-    //   .attr('x', function (d) { return d.x;})
-    //   .attr('y', function (d) { return d.y;})
-    //   .attr('opacity', 0);
-
-
     var bars = g.selectAll('.bar').data(dataSortedByGHGE, function(d) {return d.name});
     var barsE = bars.enter()
       .append('rect')
@@ -188,6 +173,13 @@ var scrollVis = function () {
       .text(function(d) {return d.name})
       .attr('opacity', 0)
 
+  var meats = filterByGroup(dataSortedByGHGE, "MEAT")
+  // xBarScale_Meat.domain(meat.map(function(d){ return d.name; }))
+
+  var bars = g.selectAll('.bar')
+    .data(meats, function(d) { return d.name })
+    .enter()
+
   };
 
   /**
@@ -203,6 +195,8 @@ var scrollVis = function () {
     activateFunctions[0] = showTitle;
     activateFunctions[1] = showFillerTitle;
     activateFunctions[2] = showGrid;
+    activateFunctions[3] = showFillerTitle;
+    // activateFunctions[3] = showMeats;
     // activateFunctions[3] = highlightGrid;
     // activateFunctions[4] = showBar;
     // activateFunctions[5] = showHistPart;
@@ -219,7 +213,7 @@ var scrollVis = function () {
     for (var i = 0; i < 9; i++) {
       updateFunctions[i] = function () {};
     }
-    // updateFunctions[7] = updateCough;
+    updateFunctions[2] = undisplay;
   };
 
   /**
@@ -266,6 +260,8 @@ var scrollVis = function () {
    *
    */
   function showFillerTitle() {
+    undisplay
+
     g.selectAll('.openvis-title')
       .transition()
       .duration(0)
@@ -343,6 +339,29 @@ var scrollVis = function () {
 
   }
 
+  /**
+   * showGrid - square grid
+   *
+   * hides: bars that aren't meat
+   * shows: meat bars only
+   *
+   */
+  function showMeats(data) {
+    var meats = filterByGroup(data, "MEAT")
+    xBarScale.domain(meat.map(function(d){ return d.name; }))
+
+    var bars = g.selectAll('.bar')
+      .data(meats, function(d) { return d.name })
+      .enter()
+
+    bars.exit()
+      .transition()
+      .duration(600)
+      .remove()
+      .attr('height', function (d) {return yBarScale(d.ghge_portion);})
+
+  }
+
 
   /**
    * DATA FUNCTIONS
@@ -363,6 +382,21 @@ var scrollVis = function () {
    function filterByName(data, name) {
        var filteredPoints = data.filter(function (d) {
          return d.name.toUpperCase() == name.toUpperCase()
+       });
+       return filteredPoints;
+   };
+
+   // Filter data to only return data with a score above minimumScore
+   function filterByGroup(data, cat) {
+       var filteredPoints = data.filter(function (d) {
+         if (cat.toUpperCase() == "FRUITS") {return d.fruit > 0
+         } else if ( cat.toUpperCase() == "VEGETABLES") {return d.veg > 0
+         } else if (cat.toUpperCase() == "DAIRY") {return d.dairy > 0
+         } else if (cat.toUpperCase() == "MEAT") {return d.meat > 0
+         } else if (cat.toUpperCase() == "PROTEIN") {return d.protein > 0
+         } else if (cat.toUpperCase() == "BEVERAGE") {return d.beverage > 0
+         } else if (cat.toUpperCase() == "GRAINS") {return d.grain > 0
+         } else {return d}
        });
        return filteredPoints;
    };
