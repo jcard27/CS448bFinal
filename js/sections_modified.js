@@ -123,6 +123,12 @@ var scrollVis = function () {
     //   .call(xAxisBar);
     // g.select('.x.axis').style('opacity', 0);
 
+    g.append('g')
+    .attr('transform', `translate(0, ${height_top})`)
+    .attr("class", "xaxis_bar")
+    .attr('opacity', 0)
+
+
     // count openvis title
     g.append('text')
       .attr('class', 'title openvis-title')
@@ -361,6 +367,9 @@ var scrollVis = function () {
     // bars.enter()
     highlightBar(meats)
 
+    g.selectAll('.xaxis_bar')
+      .attr('opacity', 0)
+
   }
 
   function highlightBar(data) {
@@ -393,7 +402,29 @@ var scrollVis = function () {
     g.selectAll('.inactive_bar')
       .attr('opacity', 0)
 
+    addLabels()
+
     // slowTransition
+  }
+
+  function addLabels() {
+    console.log(g.selectAll('.xaxis'))
+    g.selectAll('.xaxis_bar')
+      .call(d3.axisBottom(xBarScale))
+      .selectAll("text")
+        .style("text-anchor", "end")
+        .attr("dx", "-.8em")
+        .attr("dy", "-0.5em")
+        .attr("transform", "rotate(-65)")
+
+
+    g.selectAll('.xaxis_bar').selectAll('path').remove()
+
+    g.selectAll('.xaxis_bar')
+      .transition()
+      .duration(600)
+      .attr('opacity', 1)
+
   }
 
   function highlightProteins() {
@@ -404,6 +435,8 @@ var scrollVis = function () {
     // bars.enter()
     highlightBar(proteins)
 
+    g.selectAll('.xaxis_bar')
+      .attr('opacity', 0)
   }
 
   /**
@@ -420,7 +453,8 @@ var scrollVis = function () {
 
     g.selectAll('.inactive_bar')
       .attr('opacity', 0)
-    // slowTransition
+
+    addLabels()
   }
 
 
