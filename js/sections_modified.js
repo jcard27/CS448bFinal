@@ -170,22 +170,22 @@ var scrollVis = function () {
                                     return showTooltips(element, dataSortedByGHGE); })
       .on("mouseout", undisplay)
 
-    var barTooltips = g.selectAll('.tooltip').data(dataSortedByGHGE, function(d) {return d.name});
-    var barTooltipsE = barTooltips.enter()
-      .append('text')
-    barTooltips = barTooltips.merge(barTooltipsE)
-      .attr('class', 'mouse_annotation')
-      .attr('x', function(d) { return xBarScale(d.name); })
-      .attr('y', function(d) { return height - yBarScale(d.ghge_portion);})//function (d) {return yBarScale(d.ghge_portion);})
-      .text(function(d) {return d.name})
-      .attr('opacity', 0)
+    // var barTooltips = g.selectAll('.tooltip').data(dataSortedByGHGE, function(d) {return d.name});
+    // var barTooltipsE = barTooltips.enter()
+    //   .append('text')
+    // barTooltips = barTooltips.merge(barTooltipsE)
+    //   .attr('class', 'mouse_annotation')
+    //   .attr('x', function(d) { return xBarScale(d.name); })
+    //   .attr('y', function(d) { return height - yBarScale(d.ghge_portion);})//function (d) {return yBarScale(d.ghge_portion);})
+    //   .text(function(d) {return d.name})
+    //   .attr('opacity', 0)
 
-  var meats = filterByGroup(dataSortedByGHGE, "MEAT")
-  xBarScale_Meat.domain(meats.map(function(d){ return d.name; }))
-
-  var bars = g.selectAll('.bar')
-    .data(meats, function(d) { return d.name })
-    .enter()
+  // var meats = filterByGroup(dataSortedByGHGE, "MEAT")
+  // xBarScale_Meat.domain(meats.map(function(d){ return d.name; }))
+  //
+  // var bars = g.selectAll('.bar')
+  //   .data(meats, function(d) { return d.name })
+  //   .enter()
 
   };
 
@@ -338,17 +338,32 @@ var scrollVis = function () {
       .duration(0)
       .attr('opacity', 0);
 
-    g.selectAll('.bar')
-      .transition()
-      .duration(600)
-      .attr('height', function (d) {return yBarScale(d.ghge_portion);})
+    // g.selectAll('.bar')
+    //   .transition()
+    //   .duration(600)
+    //   .attr('height', function (d) {return yBarScale(d.ghge_portion);})
 
-    // var meats = filterByGroup(dataSortedByGHGE, "MEAT")
-    // xBarScale.domain(dataSortedByGHGE.map(function(d){ return d.name; }))
-    //
+      xBarScale.domain(dataSortedByGHGE.map(function(d){ return d.name; }))
+      addBars(dataSortedByGHGE)
+
+
+  }
+
+  /**
+   * showGrid - square grid
+   *
+   * hides: bars that aren't meat
+   * shows: meat bars only
+   *
+   */
+  function showMeats() {
+    var meats = filterByGroup(dataSortedByGHGE, "MEAT")
+    xBarScale.domain(meats.map(function(d){ return d.name; }))
+
+    addBars(meats)
+
     // var bars = g.selectAll('.bar')
     //   .data(meats, function(d) { return d.name })
-    //   .transition()
     //   .attr('x', function(d) { return xBarScale(d.name); })
     //   .attr('y', function(d) { return height - yBarScale(d.ghge_portion); })//function (d) {return yBarScale(d.ghge_portion);})
     //   .attr('fill', function (d) { return d.color; })
@@ -362,7 +377,6 @@ var scrollVis = function () {
     //
     //
     // bars.enter()
-    //   .transition()
     //   .append('rect')
     //   .attr('class', 'bar')
     //   .attr('x', function(d) { return xBarScale(d.name); })
@@ -372,28 +386,20 @@ var scrollVis = function () {
     //   .attr('height', function (d) {return yBarScale(d.ghge_portion);})
     //   .style("stroke", "black")
     //   .style("stroke-width", "0")
-      // .on("mouseover",	function(){ var element = this;
-      //                               return showTooltips(element, dataSortedByGHGE); })
-      // .on("mouseout", undisplay)
-
+    //   // .on("mouseover",	function(){ var element = this;
+    //   //                               return showTooltips(element, dataSortedByGHGE); })
+    //   // .on("mouseout", undisplay)
+    //
     // bars.exit().remove()
+    //   // .transition()
+    //   // .duration(600)
+    //   // .attr('opacity', 0)
 
   }
 
-  /**
-   * showGrid - square grid
-   *
-   * hides: bars that aren't meat
-   * shows: meat bars only
-   *
-   */
-  function showMeats() {
-    var meats = filterByGroup(dataSortedByGHGE, "MEAT")
-    console.log(meats)
-    xBarScale.domain(meats.map(function(d){ return d.name; }))
-
+  function addBars(data){
     var bars = g.selectAll('.bar')
-      .data(meats, function(d) { return d.name })
+      .data(data, function(d) { return d.name })
       .attr('x', function(d) { return xBarScale(d.name); })
       .attr('y', function(d) { return height - yBarScale(d.ghge_portion); })//function (d) {return yBarScale(d.ghge_portion);})
       .attr('fill', function (d) { return d.color; })
@@ -424,7 +430,6 @@ var scrollVis = function () {
       // .transition()
       // .duration(600)
       // .attr('opacity', 0)
-
   }
 
 
