@@ -166,9 +166,9 @@ var scrollVis = function () {
       .attr('height', 0)
       .style("stroke", "black")
       .style("stroke-width", "0")
-      .on("mouseover",	function(){ var element = this;
-                                    return showTooltips(element, dataSortedByGHGE); })
-      .on("mouseout", undisplay)
+      // .on("mouseover",	function(){ var element = this;
+      //                               return showTooltips(element, dataSortedByGHGE); })
+      // .on("mouseout", undisplay)
 
     // var barTooltips = g.selectAll('.tooltip').data(dataSortedByGHGE, function(d) {return d.name});
     // var barTooltipsE = barTooltips.enter()
@@ -359,42 +359,7 @@ var scrollVis = function () {
   function showMeats() {
     var meats = filterByGroup(dataSortedByGHGE, "MEAT")
     xBarScale.domain(meats.map(function(d){ return d.name; }))
-
     addBars(meats)
-
-    // var bars = g.selectAll('.bar')
-    //   .data(meats, function(d) { return d.name })
-    //   .attr('x', function(d) { return xBarScale(d.name); })
-    //   .attr('y', function(d) { return height - yBarScale(d.ghge_portion); })//function (d) {return yBarScale(d.ghge_portion);})
-    //   .attr('fill', function (d) { return d.color; })
-    //   .attr('width', xBarScale.bandwidth())
-    //   .attr('height', function (d) {return yBarScale(d.ghge_portion);})
-    //   .style("stroke", "black")
-    //   .style("stroke-width", "0")
-    //   // .on("mouseover",	function(){ var element = this;
-    //   //                               return showTooltips(element, dataSortedByGHGE); })
-    //   // .on("mouseout", undisplay)
-    //
-    //
-    // bars.enter()
-    //   .append('rect')
-    //   .attr('class', 'bar')
-    //   .attr('x', function(d) { return xBarScale(d.name); })
-    //   .attr('y', function(d) { return height - yBarScale(d.ghge_portion); })//function (d) {return yBarScale(d.ghge_portion);})
-    //   .attr('fill', function (d) { return d.color; })
-    //   .attr('width', xBarScale.bandwidth())
-    //   .attr('height', function (d) {return yBarScale(d.ghge_portion);})
-    //   .style("stroke", "black")
-    //   .style("stroke-width", "0")
-    //   // .on("mouseover",	function(){ var element = this;
-    //   //                               return showTooltips(element, dataSortedByGHGE); })
-    //   // .on("mouseout", undisplay)
-    //
-    // bars.exit().remove()
-    //   // .transition()
-    //   // .duration(600)
-    //   // .attr('opacity', 0)
-
   }
 
   function addBars(data){
@@ -407,9 +372,9 @@ var scrollVis = function () {
       .attr('height', function (d) {return yBarScale(d.ghge_portion);})
       .style("stroke", "black")
       .style("stroke-width", "0")
-      // .on("mouseover",	function(){ var element = this;
-      //                               return showTooltips(element, dataSortedByGHGE); })
-      // .on("mouseout", undisplay)
+      .on("mouseover",	function(){ var element = this;
+                                    return showTooltips(element, dataSortedByGHGE); })
+      .on("mouseout", undisplay)
 
 
     bars.enter()
@@ -422,9 +387,9 @@ var scrollVis = function () {
       .attr('height', function (d) {return yBarScale(d.ghge_portion);})
       .style("stroke", "black")
       .style("stroke-width", "0")
-      // .on("mouseover",	function(){ var element = this;
-      //                               return showTooltips(element, dataSortedByGHGE); })
-      // .on("mouseout", undisplay)
+      .on("mouseover",	function(){ var element = this;
+                                    return showTooltips(element, dataSortedByGHGE); })
+      .on("mouseout", undisplay)
 
     bars.exit().remove()
       // .transition()
