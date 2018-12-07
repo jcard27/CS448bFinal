@@ -160,9 +160,8 @@ var scrollVis = function () {
     //   .attr('x', function (d) { return d.x;})
     //   .attr('y', function (d) { return d.y;})
     //   .attr('opacity', 0);
-// console.log(dataSortedByGHGE[0].name)
-console.log(dataSortedByGHGE[0])
-// console.log(dataSortedByGHGE.map(function(d){ return d.name; }))
+
+
     var bars = g.selectAll('.bar').data(dataSortedByGHGE, function(d) {return d.name});
     var barsE = bars.enter()
       .append('rect')
@@ -172,7 +171,22 @@ console.log(dataSortedByGHGE[0])
       .attr('y', function(d) { return height - yBarScale(d.ghge_portion); })//function (d) {return yBarScale(d.ghge_portion);})
       .attr('fill', function (d) { return d.color; })
       .attr('width', xBarScale.bandwidth())
-      .attr('height', 0);
+      .attr('height', 0)
+      .style("stroke", "black")
+      .style("stroke-width", "0")
+      .on("mouseover",	function(){ var element = this;
+                                    return showTooltips(element, dataSortedByGHGE); })
+      .on("mouseout", undisplay)
+
+    var barTooltips = g.selectAll('.tooltip').data(dataSortedByGHGE, function(d) {return d.name});
+    var barTooltipsE = barTooltips.enter()
+      .append('text')
+    barTooltips = barTooltips.merge(barTooltipsE)
+      .attr('class', 'mouse_annotation')
+      .attr('x', function(d) { return xBarScale(d.name); })
+      .attr('y', function(d) { return height - yBarScale(d.ghge_portion);})//function (d) {return yBarScale(d.ghge_portion);})
+      .text(function(d) {return d.name})
+      .attr('opacity', 0)
 
   };
 
@@ -273,6 +287,40 @@ console.log(dataSortedByGHGE[0])
       .attr('height', 0)
   }
 
+  function showTooltips(a, dataSortedByGHGE) {
+    var xPos2 = xBarScale(d3.select(a).datum().name);
+    var yPos2 = yBarScale(d3.select(a).datum().ghge_portion);
+    var name = d3.select(a).datum().name;
+    var dataPoint = filterByName(dataSortedByGHGE, name);
+    var portion = d3.select(a).datum().portion_desc;
+
+    g.selectAll(".mouse_annotation")
+      .data(dataPoint, function(d) { return d.name; })
+      .attr('opacity', 1.0);
+
+    var highlightedBar = g.selectAll(".bar")
+      .data(dataPoint, function(d) { return d.name; })
+      .style("stroke-width", "1");
+
+    var highlightedBarE = highlightedBar.enter();
+
+    highlightedBar
+      .exit()
+      .attr('opacity', 0.4)
+      .style("stroke-width", "0");
+
+  }
+
+  // Undoes the highlighting from displayName (removes stroke and tooltip)
+  function undisplay () {
+    g.selectAll(".mouse_annotation")
+      .attr('opacity', 0);
+    g.selectAll(".bar")
+        .attr('opacity', 1.0)
+        .style("stroke-width", "0");
+  }
+
+
   /**
    * showGrid - square grid
    *
@@ -282,24 +330,17 @@ console.log(dataSortedByGHGE[0])
    *
    */
   function showGrid() {
+    console.log('showing bars')
     g.selectAll('.count-title')
       .transition()
       .duration(0)
       .attr('opacity', 0);
 
-    // g.selectAll('.square')
-    //   .transition()
-    //   .duration(600)
-    //   .delay(function (d) {
-    //     return 5 * d.row;
-    //   })
-    //   .attr('opacity', 1.0)
-    //   .attr('fill', '#ddd');
-
     g.selectAll('.bar')
       .transition()
       .duration(600)
       .attr('height', function (d) {return yBarScale(d.ghge_portion);})
+
   }
 
 
@@ -318,38 +359,13 @@ console.log(dataSortedByGHGE[0])
      return sortedData;
    }
 
-
-  /**
-   * getWords - maps raw data to
-   * array of data objects. There is
-   * one data object for each word in the speach
-   * data.
-   *
-   * This function converts some attributes into
-   * numbers and adds attributes used in the visualization
-   *
-   * @param rawData - data read in from file
-   */
-  // function getWords(rawData) {
-  //   return rawData.map(function (d, i) {
-  //     // is this word a filler word?
-  //     d.filler = (d.filler === '1') ? true : false;
-  //     // time in seconds word was spoken
-  //     d.time = +d.time;
-  //     // time in minutes word was spoken
-  //     d.min = Math.floor(d.time / 60);
-  //
-  //     // positioning for square visual
-  //     // stored here to make it easier
-  //     // to keep track of.
-  //     d.col = i % numPerRow;
-  //     d.x = d.col * (squareSize + squarePad);
-  //     d.row = Math.floor(i / numPerRow);
-  //     d.y = d.row * (squareSize + squarePad);
-  //     console.log(d)
-  //     return d;
-  //   });
-  // }
+   // Filter data to only return data with a score above minimumScore
+   function filterByName(data, name) {
+       var filteredPoints = data.filter(function (d) {
+         return d.name.toUpperCase() == name.toUpperCase()
+       });
+       return filteredPoints;
+   };
 
 
   /**

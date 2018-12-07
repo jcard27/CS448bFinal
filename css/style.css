@@ -59,6 +59,12 @@
   text-anchor: middle;
 }
 
+#vis .mouse_annotation {
+  font-weight: bold;
+  font-size:12px;
+  /* text-anchor: middle; */
+}
+
 .axis path,
 .axis line {
   fill: none;
