@@ -61,11 +61,12 @@ var scrollVis = function () {
   var chart = function (selection) {
     selection.each(function (rawData) {
       // create svg and give it a width and height
-      svg = d3.select(this).selectAll('svg').data([wordData]);
+      svg = d3.select(this).selectAll('svg').data([rawData]);
 
       var svgE = svg.enter().append('svg');
       // @v4 use merge to combine enter and existing selection
       svg = svg.merge(svgE);
+
 
       svg.attr('width', width + margin.left + margin.right);
       svg.attr('height', height + margin.top + margin.bottom);
