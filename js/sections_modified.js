@@ -154,18 +154,19 @@ var scrollVis = function () {
     g.selectAll('.count-title')
       .attr('opacity', 0);
 
-    var bars = g.selectAll('.bar').data(dataSortedByGHGE, function(d) {return d.name});
-    var barsE = bars.enter()
-      .append('rect')
-      .attr('class', 'bar');
-    bars = bars.merge(barsE)
-      .attr('x', function(d) { return xBarScale(d.name); })
-      .attr('y', function(d) { return height - yBarScale(d.ghge_portion); })//function (d) {return yBarScale(d.ghge_portion);})
-      .attr('fill', function (d) { return d.color; })
-      .attr('width', xBarScale.bandwidth())
-      .attr('height', 0)
-      .style("stroke", "black")
-      .style("stroke-width", "0")
+    // var bars = g.selectAll('.bar').data(dataSortedByGHGE, function(d) {return d.name});
+    // var barsE = bars.enter()
+    //   .append('rect')
+    //   .attr('class', 'bar');
+    // bars = bars.merge(barsE)
+    //   .attr('x', function(d) { return xBarScale(d.name); })
+    //   .attr('y', function(d) { return height - yBarScale(d.ghge_portion); })//function (d) {return yBarScale(d.ghge_portion);})
+    //   .attr('fill', function (d) { return d.color; })
+    //   .attr('width', xBarScale.bandwidth())
+    //   .attr('height', 0)
+    //   .style("stroke", "black")
+    //   .style("stroke-width", "0")
+
       // .on("mouseover",	function(){ var element = this;
       //                               return showTooltips(element, dataSortedByGHGE); })
       // .on("mouseout", undisplay)
@@ -204,7 +205,8 @@ var scrollVis = function () {
     activateFunctions[2] = showGrid;
     activateFunctions[3] = highlightMeats;//showMeats;
     activateFunctions[4] = showMeats;
-    // activateFunctions[4] = showBar;
+    activateFunctions[5] = highlightProteins;
+    activateFunctions[6] = showProteins;
     // activateFunctions[5] = showHistPart;
     // activateFunctions[6] = showHistAll;
     // activateFunctions[7] = showCough;
@@ -373,7 +375,9 @@ var scrollVis = function () {
       .exit()
       .attr('opacity', 0.2)
       .classed('active_bar', false)
-      .on("mouseover",	function(){})
+      .classed('inactive_bar', true)
+      .on("mouseover",	function(){console.log(this)})
+
   }
 
   /**
@@ -388,8 +392,39 @@ var scrollVis = function () {
     xBarScale.domain(meats.map(function(d){ return d.name; }))
     addBars(meats)
 
+    g.selectAll('.inactive_bar')
+      .attr('opacity', 0)
+
     // slowTransition
   }
+
+  function highlightProteins() {
+    xBarScale.domain(dataSortedByGHGE.map(function(d){ return d.name; }))
+    addBars(dataSortedByGHGE)
+    var proteins = filterByGroup(dataSortedByGHGE, "PROTEIN")
+    // var bars = g.selectAll('.bar')
+    // bars.enter()
+    highlightBar(proteins)
+
+  }
+
+  /**
+   * showGrid - square grid
+   *
+   * hides: bars that aren't meat
+   * shows: meat bars only
+   *
+   */
+  function showProteins() {
+    var proteins = filterByGroup(dataSortedByGHGE, "PROTEIN")
+    xBarScale.domain(proteins.map(function(d){ return d.name; }))
+    addBars(proteins)
+
+    g.selectAll('.inactive_bar')
+      .attr('opacity', 0)
+    // slowTransition
+  }
+
 
   function addBars(data){
     var bars = g.selectAll('.bar')
@@ -402,7 +437,7 @@ var scrollVis = function () {
       // .attr('height', function (d) {return yBarScale(d.ghge_portion);})
       .style("stroke", "black")
       .style("stroke-width", "0")
-      // .attr('opacity', 0)
+      .attr('opacity', 1.0)
       .on("mouseover",	function(){ var element = this;
                                     return showTooltips(element, dataSortedByGHGE); })
       .on("mouseout", undisplay)
@@ -418,7 +453,7 @@ var scrollVis = function () {
       // .attr('height', function (d) {return yBarScale(d.ghge_portion);})
       .style("stroke", "black")
       .style("stroke-width", "0")
-      // .attr('opacity', 0)
+      .attr('opacity', 1.0)
       .on("mouseover",	function(){ var element = this;
                                     return showTooltips(element, dataSortedByGHGE); })
       .on("mouseout", undisplay)
@@ -427,6 +462,7 @@ var scrollVis = function () {
     bars.exit()
       .attr("height", 0) //remove()
       .classed('active_bar', false)
+      .classed('inactive_bar', true)
 
     slowTransition(bars);
 
@@ -439,6 +475,7 @@ var scrollVis = function () {
       .duration(600)
       .attr('height', function (d) {return yBarScale(d.ghge_portion);})
       .attr('width', xBarScale.bandwidth())
+      // .attr('opacity', 1.0)
   }
 
 
