@@ -9,9 +9,12 @@ var scrollVis = function () {
   // constants to define the size
   // and margins of the vis area.
   var width = 600;
-  var height = 520;
+  var height = 700;//800;//520;
+  // console.log(window.innerHeight)
   var margin = { top: 0, left: 100, bottom: 40, right: 10 }; // Changes margin between vis and other things
-
+  var margin_between_plots = 50;
+  var height_top = height/2 - margin_between_plots/2;
+  console.log(height)
   // Keep track of which visualization
   // we are on and which was the last
   // index activated. When user scrolls
@@ -37,7 +40,8 @@ var scrollVis = function () {
     .padding(0.2);
 
   var yBarScale = d3.scaleLinear()
-    .range([0, height]);
+    .range([0, height_top]);
+    console.log(height_top)
 
   var xAxisBar = d3.axisBottom()
     .scale(xBarScale);
@@ -92,11 +96,8 @@ var scrollVis = function () {
       dataSortedByGHGE = sortDataByGHGE(rawData);
       var maxYBar = d3.max(dataSortedByGHGE, function (d) { return d.ghge_portion; });
       yBarScale.domain([0, maxYBar + 0.05*maxYBar])
+
       xBarScale.domain(dataSortedByGHGE.map(function(d){ return d.name; }))
-
-
-      // console.log(xBarScale(dataSortedByGHGE[0].name))
-      console.log(yBarScale(1))
 
       setupVis(dataSortedByGHGE);//(wordData, fillerCounts, histData);
 
@@ -292,7 +293,6 @@ var scrollVis = function () {
   }
 
   function showTooltips(a, dataSortedByGHGE) {
-    console.log(a)
     var xPos2 = xBarScale(d3.select(a).datum().name);
     var yPos2 = yBarScale(d3.select(a).datum().ghge_portion);
     var name = d3.select(a).datum().name;
@@ -335,7 +335,6 @@ var scrollVis = function () {
    *
    */
   function showGrid() {
-    console.log('showing bars')
     g.selectAll('.count-title')
       .transition()
       .duration(0)
@@ -356,7 +355,6 @@ var scrollVis = function () {
   function highlightMeats() {
     xBarScale.domain(dataSortedByGHGE.map(function(d){ return d.name; }))
     addBars(dataSortedByGHGE)
-    console.log('highlightingMeats')
 
     var meats = filterByGroup(dataSortedByGHGE, "MEAT")
     // var bars = g.selectAll('.bar')
@@ -376,7 +374,7 @@ var scrollVis = function () {
       .attr('opacity', 0.2)
       .classed('active_bar', false)
       .classed('inactive_bar', true)
-      .on("mouseover",	function(){console.log(this)})
+      .on("mouseover",	function(){})
 
   }
 
@@ -431,7 +429,7 @@ var scrollVis = function () {
       .data(data, function(d) { return d.name })
       .attr('class', 'bar active_bar')
       .attr('x', function(d) { return xBarScale(d.name); })
-      .attr('y', function(d) { return height - yBarScale(d.ghge_portion); })//function (d) {return yBarScale(d.ghge_portion);})
+      .attr('y', function(d) { return height_top - yBarScale(d.ghge_portion); })//function (d) {return yBarScale(d.ghge_portion);})
       .attr('fill', function (d) { return d.color; })
       // .attr('width', xBarScale.bandwidth())
       // .attr('height', function (d) {return yBarScale(d.ghge_portion);})
@@ -447,7 +445,7 @@ var scrollVis = function () {
       .append('rect')
       .attr('class', 'bar active_bar')
       .attr('x', function(d) { return xBarScale(d.name); })
-      .attr('y', function(d) { return height - yBarScale(d.ghge_portion); })//function (d) {return yBarScale(d.ghge_portion);})
+      .attr('y', function(d) { return height_top - yBarScale(d.ghge_portion); })//function (d) {return yBarScale(d.ghge_portion);})
       .attr('fill', function (d) { return d.color; })
       // .attr('width', xBarScale.bandwidth())
       // .attr('height', function (d) {return yBarScale(d.ghge_portion);})
@@ -469,7 +467,6 @@ var scrollVis = function () {
   }
 
   function slowTransition() {
-    console.log('transition')
     g.selectAll('.active_bar')
       .transition()
       .duration(600)
@@ -528,7 +525,6 @@ var scrollVis = function () {
     var sign = (activeIndex - lastIndex) < 0 ? -1 : 1;
     var scrolledSections = d3.range(lastIndex + sign, activeIndex + sign, sign);
     scrolledSections.forEach(function (i) {
-      console.log(i)
       activateFunctions[i]();
     });
     lastIndex = activeIndex;
@@ -627,7 +623,7 @@ function loadData(loadedData){
                    } else if (d.grain > 0) {d.color = color = "#a65628"
                      } else if (d.oil> 0) {d.color = color = "#ffff33"
                      } else if (d.protein> 0) {d.color = color = "#ff7f00"
-                     } else if (d.bevarage> 0) {d.color = color = "#a65628"
+                   } else if (d.beverage> 0) {d.color = color = "#DAA520" //"#a65628"
                    } else {d.color = "#80b1d3"}
                    d.num_servings = 0;
                    })
