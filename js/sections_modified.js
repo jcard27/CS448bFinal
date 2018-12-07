@@ -61,7 +61,7 @@ var scrollVis = function () {
   var chart = function (selection) {
     selection.each(function (rawData) {
       // create svg and give it a width and height
-      svg = d3.select(this).selectAll('svg').data(rawData)//dataSortedByGHGE);
+      svg = d3.select(this).selectAll('svg').data([wordData]);
 
       var svgE = svg.enter().append('svg');
       // @v4 use merge to combine enter and existing selection
@@ -79,7 +79,7 @@ var scrollVis = function () {
         .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
       // // // perform some preprocessing on raw data
-      // var wordData = getWords(rawData);
+      var wordData = getWords(rawData);
 
       var dataSortedByGHGE = sortDataByGHGE(rawData);
       var maxYBar = d3.max(dataSortedByGHGE, function (d) { return d.ghge_portion; });
@@ -329,26 +329,26 @@ console.log(dataSortedByGHGE[0])
    *
    * @param rawData - data read in from file
    */
-  // function getWords(rawData) {
-  //   return rawData.map(function (d, i) {
-  //     // is this word a filler word?
-  //     d.filler = (d.filler === '1') ? true : false;
-  //     // time in seconds word was spoken
-  //     d.time = +d.time;
-  //     // time in minutes word was spoken
-  //     d.min = Math.floor(d.time / 60);
-  //
-  //     // positioning for square visual
-  //     // stored here to make it easier
-  //     // to keep track of.
-  //     d.col = i % numPerRow;
-  //     d.x = d.col * (squareSize + squarePad);
-  //     d.row = Math.floor(i / numPerRow);
-  //     d.y = d.row * (squareSize + squarePad);
-  //     console.log(d)
-  //     return d;
-  //   });
-  // }
+  function getWords(rawData) {
+    return rawData.map(function (d, i) {
+      // is this word a filler word?
+      d.filler = (d.filler === '1') ? true : false;
+      // time in seconds word was spoken
+      d.time = +d.time;
+      // time in minutes word was spoken
+      d.min = Math.floor(d.time / 60);
+
+      // positioning for square visual
+      // stored here to make it easier
+      // to keep track of.
+      d.col = i % numPerRow;
+      d.x = d.col * (squareSize + squarePad);
+      d.row = Math.floor(i / numPerRow);
+      d.y = d.row * (squareSize + squarePad);
+      console.log(d)
+      return d;
+    });
+  }
 
 
   /**
