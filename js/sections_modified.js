@@ -202,8 +202,8 @@ var scrollVis = function () {
     activateFunctions[0] = showTitle;
     activateFunctions[1] = showFillerTitle;
     activateFunctions[2] = showGrid;
-    activateFunctions[3] = showMeats;
-    // activateFunctions[3] = highlightGrid;
+    activateFunctions[3] = highlightMeats;//showMeats;
+    activateFunctions[4] = showMeats;
     // activateFunctions[4] = showBar;
     // activateFunctions[5] = showHistPart;
     // activateFunctions[6] = showHistAll;
@@ -331,7 +331,7 @@ var scrollVis = function () {
    * shows: square grid
    *
    */
-  function showGrid(data) {
+  function showGrid() {
     console.log('showing bars')
     g.selectAll('.count-title')
       .transition()
@@ -345,8 +345,32 @@ var scrollVis = function () {
 
       xBarScale.domain(dataSortedByGHGE.map(function(d){ return d.name; }))
       addBars(dataSortedByGHGE)
+      addBars(dataSortedByGHGE)
 
 
+  }
+
+  function highlightMeats() {
+    showGrid()
+    // xBarScale.domain(dataSortedByGHGE.map(function(d){ return d.name; }))
+    // addBars(dataSortedByGHGE)
+
+    var meats = filterByGroup(dataSortedByGHGE, "MEAT")
+    // var bars = g.selectAll('.bar')
+    // bars.enter()
+    highlightBar(meats)
+
+  }
+
+  function highlightBar(data) {
+    var highlightedBar = g.selectAll(".bar")
+      .data(data, function(d) { return d.name; })
+
+    var highlightedBarE = highlightedBar.enter();
+
+    highlightedBar
+      .exit()
+      .attr('opacity', 0.4)
   }
 
   /**
@@ -358,8 +382,8 @@ var scrollVis = function () {
    */
   function showMeats() {
     var meats = filterByGroup(dataSortedByGHGE, "MEAT")
-    xBarScale.domain(meats.map(function(d){ return d.name; }))
     addBars(meats)
+    xBarScale.domain(meats.map(function(d){ return d.name; }))
   }
 
   function addBars(data){
@@ -372,6 +396,7 @@ var scrollVis = function () {
       .attr('height', function (d) {return yBarScale(d.ghge_portion);})
       .style("stroke", "black")
       .style("stroke-width", "0")
+      .attr('opacity', 0)
       .on("mouseover",	function(){ var element = this;
                                     return showTooltips(element, dataSortedByGHGE); })
       .on("mouseout", undisplay)
@@ -387,14 +412,24 @@ var scrollVis = function () {
       .attr('height', function (d) {return yBarScale(d.ghge_portion);})
       .style("stroke", "black")
       .style("stroke-width", "0")
+      .attr('opacity', 0)
       .on("mouseover",	function(){ var element = this;
                                     return showTooltips(element, dataSortedByGHGE); })
       .on("mouseout", undisplay)
 
+
     bars.exit().remove()
-      // .transition()
-      // .duration(600)
-      // .attr('opacity', 0)
+
+    slowTransition();
+
+  }
+
+  function slowTransition() {
+    console.log('transition')
+    g.selectAll('.bar')
+      .transition()
+      .duration(600)
+      .attr('opacity', 1.0)
   }
 
 
