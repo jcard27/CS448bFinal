@@ -33,13 +33,20 @@ var scrollVis = function () {
   var g = null;
 
   var xBarScale = d3.scaleBand()
-    .range([0, width]);
+    .range([0, width])
+    .padding(0.2);
 
   var yBarScale = d3.scaleLinear()
     .range([0, height]);
 
   var xAxisBar = d3.axisBottom()
     .scale(xBarScale);
+
+  var xBarScale_Meat = d3.scaleBand()
+    .range([0, width])
+    .padding(1);
+
+
 
   // When scrolling to a new section
   // the activation function for that
@@ -82,7 +89,7 @@ var scrollVis = function () {
       // // // // perform some preprocessing on raw data
       // var wordData = getWords(rawData);
 
-      var dataSortedByGHGE = sortDataByGHGE(rawData);
+      dataSortedByGHGE = sortDataByGHGE(rawData);
       var maxYBar = d3.max(dataSortedByGHGE, function (d) { return d.ghge_portion; });
       yBarScale.domain([0, maxYBar + 0.05*maxYBar])
       xBarScale.domain(dataSortedByGHGE.map(function(d){ return d.name; }))
@@ -93,7 +100,7 @@ var scrollVis = function () {
 
       setupVis(dataSortedByGHGE);//(wordData, fillerCounts, histData);
 
-      setupSections();
+      setupSections(dataSortedByGHGE);
     });
   };
 
@@ -174,7 +181,7 @@ var scrollVis = function () {
       .attr('opacity', 0)
 
   var meats = filterByGroup(dataSortedByGHGE, "MEAT")
-  // xBarScale_Meat.domain(meat.map(function(d){ return d.name; }))
+  xBarScale_Meat.domain(meats.map(function(d){ return d.name; }))
 
   var bars = g.selectAll('.bar')
     .data(meats, function(d) { return d.name })
@@ -189,14 +196,13 @@ var scrollVis = function () {
    * the section's index.
    *
    */
-  var setupSections = function () {
+  var setupSections = function (dataSortedByGHGE) {
     // activateFunctions are called each
     // time the active section changes
     activateFunctions[0] = showTitle;
     activateFunctions[1] = showFillerTitle;
     activateFunctions[2] = showGrid;
-    activateFunctions[3] = showFillerTitle;
-    // activateFunctions[3] = showMeats;
+    activateFunctions[3] = showMeats;
     // activateFunctions[3] = highlightGrid;
     // activateFunctions[4] = showBar;
     // activateFunctions[5] = showHistPart;
@@ -325,7 +331,7 @@ var scrollVis = function () {
    * shows: square grid
    *
    */
-  function showGrid() {
+  function showGrid(data) {
     console.log('showing bars')
     g.selectAll('.count-title')
       .transition()
@@ -337,6 +343,41 @@ var scrollVis = function () {
       .duration(600)
       .attr('height', function (d) {return yBarScale(d.ghge_portion);})
 
+    // var meats = filterByGroup(dataSortedByGHGE, "MEAT")
+    // xBarScale.domain(dataSortedByGHGE.map(function(d){ return d.name; }))
+    //
+    // var bars = g.selectAll('.bar')
+    //   .data(meats, function(d) { return d.name })
+    //   .transition()
+    //   .attr('x', function(d) { return xBarScale(d.name); })
+    //   .attr('y', function(d) { return height - yBarScale(d.ghge_portion); })//function (d) {return yBarScale(d.ghge_portion);})
+    //   .attr('fill', function (d) { return d.color; })
+    //   .attr('width', xBarScale.bandwidth())
+    //   .attr('height', function (d) {return yBarScale(d.ghge_portion);})
+    //   .style("stroke", "black")
+    //   .style("stroke-width", "0")
+    //   // .on("mouseover",	function(){ var element = this;
+    //   //                               return showTooltips(element, dataSortedByGHGE); })
+    //   // .on("mouseout", undisplay)
+    //
+    //
+    // bars.enter()
+    //   .transition()
+    //   .append('rect')
+    //   .attr('class', 'bar')
+    //   .attr('x', function(d) { return xBarScale(d.name); })
+    //   .attr('y', function(d) { return height - yBarScale(d.ghge_portion); })//function (d) {return yBarScale(d.ghge_portion);})
+    //   .attr('fill', function (d) { return d.color; })
+    //   .attr('width', xBarScale.bandwidth())
+    //   .attr('height', function (d) {return yBarScale(d.ghge_portion);})
+    //   .style("stroke", "black")
+    //   .style("stroke-width", "0")
+      // .on("mouseover",	function(){ var element = this;
+      //                               return showTooltips(element, dataSortedByGHGE); })
+      // .on("mouseout", undisplay)
+
+    // bars.exit().remove()
+
   }
 
   /**
@@ -346,19 +387,43 @@ var scrollVis = function () {
    * shows: meat bars only
    *
    */
-  function showMeats(data) {
-    var meats = filterByGroup(data, "MEAT")
-    xBarScale.domain(meat.map(function(d){ return d.name; }))
+  function showMeats() {
+    var meats = filterByGroup(dataSortedByGHGE, "MEAT")
+    console.log(meats)
+    xBarScale.domain(meats.map(function(d){ return d.name; }))
 
     var bars = g.selectAll('.bar')
       .data(meats, function(d) { return d.name })
-      .enter()
-
-    bars.exit()
-      .transition()
-      .duration(600)
-      .remove()
+      .attr('x', function(d) { return xBarScale(d.name); })
+      .attr('y', function(d) { return height - yBarScale(d.ghge_portion); })//function (d) {return yBarScale(d.ghge_portion);})
+      .attr('fill', function (d) { return d.color; })
+      .attr('width', xBarScale.bandwidth())
       .attr('height', function (d) {return yBarScale(d.ghge_portion);})
+      .style("stroke", "black")
+      .style("stroke-width", "0")
+      // .on("mouseover",	function(){ var element = this;
+      //                               return showTooltips(element, dataSortedByGHGE); })
+      // .on("mouseout", undisplay)
+
+
+    bars.enter()
+      .append('rect')
+      .attr('class', 'bar')
+      .attr('x', function(d) { return xBarScale(d.name); })
+      .attr('y', function(d) { return height - yBarScale(d.ghge_portion); })//function (d) {return yBarScale(d.ghge_portion);})
+      .attr('fill', function (d) { return d.color; })
+      .attr('width', xBarScale.bandwidth())
+      .attr('height', function (d) {return yBarScale(d.ghge_portion);})
+      .style("stroke", "black")
+      .style("stroke-width", "0")
+      // .on("mouseover",	function(){ var element = this;
+      //                               return showTooltips(element, dataSortedByGHGE); })
+      // .on("mouseout", undisplay)
+
+    bars.exit().remove()
+      // .transition()
+      // .duration(600)
+      // .attr('opacity', 0)
 
   }
 
@@ -412,6 +477,7 @@ var scrollVis = function () {
     var sign = (activeIndex - lastIndex) < 0 ? -1 : 1;
     var scrolledSections = d3.range(lastIndex + sign, activeIndex + sign, sign);
     scrolledSections.forEach(function (i) {
+      console.log(i)
       activateFunctions[i]();
     });
     lastIndex = activeIndex;
