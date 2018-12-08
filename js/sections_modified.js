@@ -14,6 +14,7 @@ var scrollVis = function () {
   var margin_between_plots = 100;
   var height_top = height/2 - margin_between_plots/2;
   var height_bot = height_top;
+  var inactive_opac = 0.2;
 
   // Keep track of which visualization
   // we are on and which was the last
@@ -345,11 +346,9 @@ var scrollVis = function () {
       .attr('opacity', 0)
 
     g.selectAll('.inactive_scatter')
-      .attr('opacity', 0.2)
+      .attr('opacity', inactive_opac)
 
   };
-
-
 
   /**
    * showMeats - meat bar plot
@@ -401,7 +400,7 @@ var scrollVis = function () {
       .attr('opacity', 0)
 
     g.selectAll('.inactive_scatter')
-      .attr('opacity', 0.2)
+      .attr('opacity', inactive_opac)
   };
 
   /**
@@ -428,6 +427,10 @@ var scrollVis = function () {
   };
 
 
+
+
+
+
   /**
   * HELPER FUNCTIONS FOR displays
   * used where repeated functionality needed
@@ -435,11 +438,8 @@ var scrollVis = function () {
   */
 
   function showTooltips(a, dataSortedByGHGE) {
-    var xPos2 = xBarScale(d3.select(a).datum().name);
-    var yPos2 = yBarScale(d3.select(a).datum().ghge_portion);
     var name = d3.select(a).datum().name;
     var dataPoint = filterByName(dataSortedByGHGE, name);
-    var portion = d3.select(a).datum().portion_desc;
 
     g.selectAll(".mouse_annotation")
       .data(dataPoint, function(d) { return d.name; })
@@ -456,14 +456,33 @@ var scrollVis = function () {
       .attr('opacity', 0.4)
       .style("stroke-width", "0");
 
+    var highlightedScatter = g.selectAll(".active_scatter")
+      .data(dataPoint, function(d) { return d.name; })
+      .attr('r', 4)
+      .style("stroke", "black")
+      .style("stroke-width", "1.5");
+
+    var highlightedScatterE = highlightedScatter.enter();
+
+    highlightedScatter
+      .exit()
+      .attr('opacity', inactive_opac)
+      .style("stroke-width", "0");
+
   };
 
   // Undoes the highlighting from displayName (removes stroke and tooltip)
   function undisplay () {
     g.selectAll(".mouse_annotation")
       .attr('opacity', 0);
+
     g.selectAll(".active_bar")
         .attr('opacity', 1.0)
+        .style("stroke-width", "0");
+
+    g.selectAll(".active_scatter")
+        .attr('opacity', 1.0)
+        .attr('r', 3)
         .style("stroke-width", "0");
   }
 
@@ -542,7 +561,7 @@ var scrollVis = function () {
 
     highlightedBar
       .exit()
-      .attr('opacity', 0.2)
+      .attr('opacity', inactive_opac)
       .classed('active_bar', false)
       .classed('inactive_bar', true)
       .on("mouseover",	function(){})
@@ -558,6 +577,9 @@ var scrollVis = function () {
       .attr("cx", function (d) {return xScatterScale(d.kcal_portion);})
       .attr("cy", function (d) {return height_top + margin_between_plots + yScatterScale(d.ghge_portion);})
       .attr('opacity', 1)
+      .on("mouseover",	function(){ var element = this;
+                                    return showTooltips(element, dataSortedByGHGE); })
+      .on("mouseout", undisplay)
 
      circles.enter().append("circle")
             .attr('r', 3)
@@ -566,6 +588,9 @@ var scrollVis = function () {
             .attr("cx", function (d) {return xScatterScale(d.kcal_portion);})
             .attr("cy", function (d) {return height_top + margin_between_plots + yScatterScale(d.ghge_portion);})
             .attr('opacity', 0)
+            .on("mouseover",	function(){ var element = this;
+                                          return showTooltips(element, dataSortedByGHGE); })
+            .on("mouseout", undisplay)
 
      g.selectAll('.xaxis_scatter')
       .classed('scatter', true)
@@ -595,7 +620,8 @@ var scrollVis = function () {
       .exit()
       .classed('active_scatter', false)
       .classed('inactive_scatter', true)
-      .attr('opacity', 0.2);
+      .attr('opacity', inactive_opac)
+      .on("mouseover",	function(){});
 
     scatterTransition();
 
