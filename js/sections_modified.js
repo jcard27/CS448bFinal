@@ -108,7 +108,7 @@ var scrollVis = function () {
       var maxY = d3.max(dataSortedByGHGE, function (d) { return d.ghge_portion; });
       yBarScale.domain([0, maxY + 0.05*maxY])
       yScatterScale.domain([0, maxY + 0.05*maxY])
-      yDietScale.domain([0, maxY + 0.05*maxY])
+      yDietScale.domain([0, 10*maxY + 0.05*(10*maxY)])
 
       xBarScale.domain(dataSortedByGHGE.map(function(d){ return d.name; }))
 
@@ -486,15 +486,15 @@ var scrollVis = function () {
 
     var dietItems = g.selectAll('.dietGHGE').data();
 
-    // var meats = filterByGroup(dietItems, "MEAT")
-    var proteins = filterByGroup(dietItems, "PROTEIN")
-    var beverages = filterByGroup(dietItems, "BEVERAGE")
+    var meats = filterByGroup(dietItems, "MEAT")
+    var proteins = filterByGroup(dietItems, "PROTEIN-NONMEAT")
+    var beverages = filterByGroup(dietItems, "BEVERAGE-NONDAIRY")
     var dairy = filterByGroup(dietItems, "DAIRY")
     var fruits = filterByGroup(dietItems, "FRUITS")
     var veg = filterByGroup(dietItems, "VEGETABLES")
     var grains = filterByGroup(dietItems, "GRAINS")
 
-    dietItems = proteins.concat(beverages, dairy, fruits, veg, grains)
+    dietItems = meats.concat(proteins, dairy, fruits, veg, grains, beverages)
 
     var prev_serv = 0;
     var prev_ghge = 0;
@@ -505,16 +505,7 @@ var scrollVis = function () {
       prev_ghge += d.num_servings*d.ghge_portion
     })
 
-
-
-    console.log(dietItems)
-    // console.log(meats)
-    // console.log(fruits)
-    // var ordered = meats.concat(fruits)
-    // console.log(ordered)
-
     g.selectAll('.dietGHGE')
-      .transition()
       .attr('x', function(d) { return 100 })
       .attr("y", function (d) {return height - yDietScale(d.ghge_portion_prev_food + d.num_servings*d.ghge_portion);})
       .attr('height', function(d) { return yDietScale(d.num_servings*d.ghge_portion) })
@@ -793,6 +784,8 @@ var scrollVis = function () {
          } else if (cat.toUpperCase() == "PROTEIN") {return d.protein > 0
          } else if (cat.toUpperCase() == "BEVERAGE") {return d.beverage > 0
          } else if (cat.toUpperCase() == "GRAINS") {return d.grain > 0
+         } else if (cat.toUpperCase() == "PROTEIN-NONMEAT") { return (d.protein > 0 && d.meat == 0)
+         } else if (cat.toUpperCase() == "BEVERAGE-NONDAIRY") { return (d.beverage > 0 && d.dairy == 0)
          } else {return d}
        });
        return filteredPoints;
