@@ -504,12 +504,6 @@ var scrollVis = function () {
       .attr('width', 20)
       .attr('fill', function(d) { return d.color })
 
-      console.log(height + margin.bottom)
-      console.log(yDietScale(0))
-      console.log(yDietScale(1))
-      console.log(yDietScale(2))
-
-    // g.selectAll('')
   }
 
   function showTooltips(a, dataSortedByGHGE) {
