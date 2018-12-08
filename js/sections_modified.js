@@ -9,12 +9,12 @@ var scrollVis = function () {
   // constants to define the size
   // and margins of the vis area.
   var width = 600;
-  var height = 700;//800;//520;
-  // console.log(window.innerHeight)
-  var margin = { top: 0, left: 100, bottom: 40, right: 10 }; // Changes margin between vis and other things
-  var margin_between_plots = 50;
+  var height = window.innerHeight - 100//500;//700;//800;//520;
+  var margin = { top: 0, left: 100, bottom: 50, right: 10 }; // Changes margin between vis and other things
+  var margin_between_plots = 100;
   var height_top = height/2 - margin_between_plots/2;
-  console.log(height)
+  var height_bot = height_top;
+
   // Keep track of which visualization
   // we are on and which was the last
   // index activated. When user scrolls
@@ -40,15 +40,17 @@ var scrollVis = function () {
     .padding(0.2);
 
   var yBarScale = d3.scaleLinear()
-    .range([0, height_top]);
-    console.log(height_top)
-
-  var xAxisBar = d3.axisBottom()
-    .scale(xBarScale);
+    .range([height_top, 0]);
 
   var xBarScale_Meat = d3.scaleBand()
     .range([0, width])
     .padding(1);
+
+  var xScatterScale = d3.scaleLinear()
+    .range([0, width]);
+
+  var yScatterScale = d3.scaleLinear()
+    .range([height_top, 0]);
 
 
 
@@ -94,10 +96,14 @@ var scrollVis = function () {
       // var wordData = getWords(rawData);
 
       dataSortedByGHGE = sortDataByGHGE(rawData);
-      var maxYBar = d3.max(dataSortedByGHGE, function (d) { return d.ghge_portion; });
-      yBarScale.domain([0, maxYBar + 0.05*maxYBar])
+      var maxY = d3.max(dataSortedByGHGE, function (d) { return d.ghge_portion; });
+      yBarScale.domain([0, maxY + 0.05*maxY])
+      yScatterScale.domain([0, maxY + 0.05*maxY])
 
       xBarScale.domain(dataSortedByGHGE.map(function(d){ return d.name; }))
+
+      var maxKcal = d3.max(dataSortedByGHGE, function (d) { return d.kcal_portion; });
+      xScatterScale.domain([0, maxKcal + 0.05*maxKcal])
 
       setupVis(dataSortedByGHGE);//(wordData, fillerCounts, histData);
 
@@ -124,9 +130,23 @@ var scrollVis = function () {
     // g.select('.x.axis').style('opacity', 0);
 
     g.append('g')
-    .attr('transform', `translate(0, ${height_top})`)
-    .attr("class", "xaxis_bar")
-    .attr('opacity', 0)
+      .attr('transform', `translate(0, ${height_top})`)
+      .attr("class", "xaxis_bar")
+      .attr('opacity', 0)
+
+    g.append('g')
+      .attr("class", "yaxis_bar")
+      .attr('opacity', 0)
+
+    g.append('g')
+      .attr('transform', `translate(0, ${height})`)
+      .attr("class", "xaxis_scatter")
+      .attr('opacity', 0)
+
+    g.append('g')
+      .attr('transform', `translate(0, ${height_top + margin_between_plots})`)
+      .attr("class", "yaxis_scatter")
+      .attr('opacity', 0)
 
 
     // count openvis title
@@ -207,9 +227,9 @@ var scrollVis = function () {
   var setupSections = function (dataSortedByGHGE) {
     // activateFunctions are called each
     // time the active section changes
-    activateFunctions[0] = showTitle;
-    activateFunctions[1] = showFillerTitle;
-    activateFunctions[2] = showGrid;
+    activateFunctions[0] = showFillerTitle;
+    activateFunctions[1] = showGrid;
+    activateFunctions[2] = showCalories;
     activateFunctions[3] = highlightMeats;//showMeats;
     activateFunctions[4] = showMeats;
     activateFunctions[5] = highlightProteins;
@@ -353,22 +373,80 @@ var scrollVis = function () {
 
       xBarScale.domain(dataSortedByGHGE.map(function(d){ return d.name; }))
       addBars(dataSortedByGHGE)
-      addBars(dataSortedByGHGE)
+      // addBars(dataSortedByGHGE)
+
+      g.selectAll('.scatter')
+        .attr('opacity', 0)
+
+      g.selectAll('.scatter_pts').remove()
 
 
   }
+
+  function showCalories() {
+    // xScatterScale.domain(dataSortedByGHGE.map(function(d){ return d.name; }))
+    addScatter();
+    scatterTransition();
+
+  }
+
+  function addScatter(data){
+    var circles = g.selectAll(".scatter")
+      .data(dataSortedByGHGE, function(d){return d.name})
+      .attr("class", 'scatter scatter_pts active_scatter')
+      .attr('r', 3)
+      .attr("fill", function(d) {return d.color;})
+      .attr("cx", function (d) {return xScatterScale(d.kcal_portion);})
+      .attr("cy", function (d) {return height_top + margin_between_plots + yScatterScale(d.ghge_portion);})
+      .attr('opacity', 1)
+
+     circles.enter().append("circle")
+            .attr('r', 3)
+            .attr("class", 'scatter scatter_pts active_scatter')
+            .attr("fill", function(d) {return d.color;})
+            .attr("cx", function (d) {return xScatterScale(d.kcal_portion);})
+            .attr("cy", function (d) {return height_top + margin_between_plots + yScatterScale(d.ghge_portion);})
+            .attr('opacity', 0)
+
+     g.selectAll('.xaxis_scatter')
+      .classed('scatter', true)
+      .call(d3.axisBottom(xScatterScale))
+
+     g.selectAll('.yaxis_scatter')
+     .classed('scatter', true)
+     .call(d3.axisLeft(yScatterScale))
+
+     g.selectAll('.yaxis_scatter')
+      .transition()
+      .duration(600)
+      .attr('opacity', 1)
+
+      g.selectAll('.xaxis_scatter')
+       .transition()
+       .duration(600)
+       .attr('opacity', 1)
+
+  }
+
+
 
   function highlightMeats() {
     xBarScale.domain(dataSortedByGHGE.map(function(d){ return d.name; }))
     addBars(dataSortedByGHGE)
 
     var meats = filterByGroup(dataSortedByGHGE, "MEAT")
-    // var bars = g.selectAll('.bar')
-    // bars.enter()
+
     highlightBar(meats)
+
+    addScatter();
+    highlightScatter(meats)
 
     g.selectAll('.xaxis_bar')
       .attr('opacity', 0)
+
+    g.selectAll('.inactive_scatter')
+      .attr('opacity', 0.2)
+
 
   }
 
@@ -384,6 +462,20 @@ var scrollVis = function () {
       .classed('active_bar', false)
       .classed('inactive_bar', true)
       .on("mouseover",	function(){})
+
+  }
+
+  function highlightScatter(data) {
+    var highlightedScatter = g.selectAll(".scatter_pts")
+      .data(data, function(d) { return d.name; });
+
+    highlightedScatter
+      .exit()
+      .classed('active_scatter', false)
+      .classed('inactive_scatter', true)
+      .attr('opacity', 0.2);
+
+      scatterTransition();
 
   }
 
@@ -404,11 +496,14 @@ var scrollVis = function () {
 
     addLabels()
 
-    // slowTransition
+    g.selectAll('.scatter')
+      .attr('opacity', 0)
+
+    g.selectAll('.scatter_pts').remove()
+
   }
 
   function addLabels() {
-    console.log(g.selectAll('.xaxis'))
     g.selectAll('.xaxis_bar')
       .call(d3.axisBottom(xBarScale))
       .selectAll("text")
@@ -417,10 +512,18 @@ var scrollVis = function () {
         .attr("dy", "-0.5em")
         .attr("transform", "rotate(-65)")
 
+    g.selectAll('.yaxis_bar')
+      .call(d3.axisLeft(yBarScale))
+
 
     g.selectAll('.xaxis_bar').selectAll('path').remove()
 
     g.selectAll('.xaxis_bar')
+      .transition()
+      .duration(600)
+      .attr('opacity', 1)
+
+    g.selectAll('.yaxis_bar')
       .transition()
       .duration(600)
       .attr('opacity', 1)
@@ -437,6 +540,15 @@ var scrollVis = function () {
 
     g.selectAll('.xaxis_bar')
       .attr('opacity', 0)
+
+    addScatter();
+    highlightScatter(proteins)
+
+    g.selectAll('.xaxis_bar')
+      .attr('opacity', 0)
+
+    g.selectAll('.inactive_scatter')
+      .attr('opacity', 0.2)
   }
 
   /**
@@ -455,6 +567,11 @@ var scrollVis = function () {
       .attr('opacity', 0)
 
     addLabels()
+
+    g.selectAll('.scatter')
+      .attr('opacity', 0)
+
+    g.selectAll('.scatter_pts').remove()
   }
 
 
@@ -463,7 +580,7 @@ var scrollVis = function () {
       .data(data, function(d) { return d.name })
       .attr('class', 'bar active_bar')
       .attr('x', function(d) { return xBarScale(d.name); })
-      .attr('y', function(d) { return height_top - yBarScale(d.ghge_portion); })//function (d) {return yBarScale(d.ghge_portion);})
+      .attr('y', function(d) { return yBarScale(d.ghge_portion); })//function (d) {return yBarScale(d.ghge_portion);})
       .attr('fill', function (d) { return d.color; })
       // .attr('width', xBarScale.bandwidth())
       // .attr('height', function (d) {return yBarScale(d.ghge_portion);})
@@ -479,7 +596,7 @@ var scrollVis = function () {
       .append('rect')
       .attr('class', 'bar active_bar')
       .attr('x', function(d) { return xBarScale(d.name); })
-      .attr('y', function(d) { return height_top - yBarScale(d.ghge_portion); })//function (d) {return yBarScale(d.ghge_portion);})
+      .attr('y', function(d) { return yBarScale(d.ghge_portion); })//function (d) {return yBarScale(d.ghge_portion);})
       .attr('fill', function (d) { return d.color; })
       // .attr('width', xBarScale.bandwidth())
       // .attr('height', function (d) {return yBarScale(d.ghge_portion);})
@@ -496,7 +613,7 @@ var scrollVis = function () {
       .classed('active_bar', false)
       .classed('inactive_bar', true)
 
-    slowTransition(bars);
+    slowTransition();
 
   }
 
@@ -504,9 +621,16 @@ var scrollVis = function () {
     g.selectAll('.active_bar')
       .transition()
       .duration(600)
-      .attr('height', function (d) {return yBarScale(d.ghge_portion);})
+      .attr('height', function (d) {return height_top - yBarScale(d.ghge_portion);})
       .attr('width', xBarScale.bandwidth())
       // .attr('opacity', 1.0)
+  }
+
+  function scatterTransition() {
+    g.selectAll('.active_scatter')
+      .transition()
+      .duration(600)
+      .attr('opacity', 1.0)
   }
 
 
