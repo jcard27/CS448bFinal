@@ -122,12 +122,6 @@ var scrollVis = function () {
    * @param histData - binned histogram data
    */
   var setupVis = function (dataSortedByGHGE){//wordData, fillerCounts, histData) {
-    // // axis
-    // g.append('g')
-    //   .attr('class', 'x axis')
-    //   .attr('transform', 'translate(0,' + height + ')')
-    //   .call(xAxisBar);
-    // g.select('.x.axis').style('opacity', 0);
 
     g.append('g')
       .attr('transform', `translate(0, ${height_top})`)
@@ -147,7 +141,6 @@ var scrollVis = function () {
       .attr('transform', `translate(0, ${height_top + margin_between_plots})`)
       .attr("class", "yaxis_scatter")
       .attr('opacity', 0)
-
 
     // count openvis title
     g.append('text')
@@ -180,40 +173,6 @@ var scrollVis = function () {
 
     g.selectAll('.count-title')
       .attr('opacity', 0);
-
-    // var bars = g.selectAll('.bar').data(dataSortedByGHGE, function(d) {return d.name});
-    // var barsE = bars.enter()
-    //   .append('rect')
-    //   .attr('class', 'bar');
-    // bars = bars.merge(barsE)
-    //   .attr('x', function(d) { return xBarScale(d.name); })
-    //   .attr('y', function(d) { return height - yBarScale(d.ghge_portion); })//function (d) {return yBarScale(d.ghge_portion);})
-    //   .attr('fill', function (d) { return d.color; })
-    //   .attr('width', xBarScale.bandwidth())
-    //   .attr('height', 0)
-    //   .style("stroke", "black")
-    //   .style("stroke-width", "0")
-
-      // .on("mouseover",	function(){ var element = this;
-      //                               return showTooltips(element, dataSortedByGHGE); })
-      // .on("mouseout", undisplay)
-
-    // var barTooltips = g.selectAll('.tooltip').data(dataSortedByGHGE, function(d) {return d.name});
-    // var barTooltipsE = barTooltips.enter()
-    //   .append('text')
-    // barTooltips = barTooltips.merge(barTooltipsE)
-    //   .attr('class', 'mouse_annotation')
-    //   .attr('x', function(d) { return xBarScale(d.name); })
-    //   .attr('y', function(d) { return height - yBarScale(d.ghge_portion);})//function (d) {return yBarScale(d.ghge_portion);})
-    //   .text(function(d) {return d.name})
-    //   .attr('opacity', 0)
-
-  // var meats = filterByGroup(dataSortedByGHGE, "MEAT")
-  // xBarScale_Meat.domain(meats.map(function(d){ return d.name; }))
-  //
-  // var bars = g.selectAll('.bar')
-  //   .data(meats, function(d) { return d.name })
-  //   .enter()
 
   };
 
@@ -318,40 +277,6 @@ var scrollVis = function () {
       .attr('height', 0)
   }
 
-  function showTooltips(a, dataSortedByGHGE) {
-    var xPos2 = xBarScale(d3.select(a).datum().name);
-    var yPos2 = yBarScale(d3.select(a).datum().ghge_portion);
-    var name = d3.select(a).datum().name;
-    var dataPoint = filterByName(dataSortedByGHGE, name);
-    var portion = d3.select(a).datum().portion_desc;
-
-    g.selectAll(".mouse_annotation")
-      .data(dataPoint, function(d) { return d.name; })
-      .attr('opacity', 1.0);
-
-    var highlightedBar = g.selectAll(".active_bar")
-      .data(dataPoint, function(d) { return d.name; })
-      .style("stroke-width", "1");
-
-    var highlightedBarE = highlightedBar.enter();
-
-    highlightedBar
-      .exit()
-      .attr('opacity', 0.4)
-      .style("stroke-width", "0");
-
-  }
-
-  // Undoes the highlighting from displayName (removes stroke and tooltip)
-  function undisplay () {
-    g.selectAll(".mouse_annotation")
-      .attr('opacity', 0);
-    g.selectAll(".active_bar")
-        .attr('opacity', 1.0)
-        .style("stroke-width", "0");
-  }
-
-
   /**
    * showGrid - square grid
    *
@@ -379,16 +304,250 @@ var scrollVis = function () {
         .attr('opacity', 0)
 
       g.selectAll('.scatter_pts').remove()
+  };
 
-
-  }
-
+  /**
+   * showCalories - calorie scatter
+   *
+   * hides: nothing
+   * (no previous step to hide)
+   * shows: calorie scatter plot with all foods
+   *
+   */
   function showCalories() {
     // xScatterScale.domain(dataSortedByGHGE.map(function(d){ return d.name; }))
     addScatter();
     scatterTransition();
+    xBarScale.domain(dataSortedByGHGE.map(function(d){ return d.name; }))
+    addBars(dataSortedByGHGE)
+  };
 
+  /**
+   * highlightMeats
+   *
+   * hides:
+   * (no previous step to hide)
+   * shows: meats with full opacity, other foods transparent
+   *
+   */
+  function highlightMeats() {
+    xBarScale.domain(dataSortedByGHGE.map(function(d){ return d.name; }))
+    addBars(dataSortedByGHGE)
+
+    var meats = filterByGroup(dataSortedByGHGE, "MEAT")
+
+    highlightBar(meats)
+
+    addScatter();
+    highlightScatter(meats)
+
+    g.selectAll('.xaxis_bar')
+      .attr('opacity', 0)
+
+    g.selectAll('.inactive_scatter')
+      .attr('opacity', 0.2)
+
+  };
+
+
+
+  /**
+   * showMeats - meat bar plot
+   *
+   * hides: bars that aren't meat, scatter plot
+   * shows: meat bars only
+   *
+   */
+  function showMeats() {
+    var meats = filterByGroup(dataSortedByGHGE, "MEAT")
+    xBarScale.domain(meats.map(function(d){ return d.name; }))
+    addBars(meats)
+
+    g.selectAll('.inactive_bar')
+      .attr('opacity', 0)
+
+    addLabels()
+
+    g.selectAll('.scatter')
+      .attr('opacity', 0)
+
+    g.selectAll('.scatter_pts').remove()
+
+  };
+
+  /**
+   * highlightProteins
+   *
+   * hides:
+   * (no previous step to hide)
+   * shows: scatter and bar, proteins opaque other foods transparent
+   *
+   */
+  function highlightProteins() {
+    xBarScale.domain(dataSortedByGHGE.map(function(d){ return d.name; }))
+    addBars(dataSortedByGHGE)
+    var proteins = filterByGroup(dataSortedByGHGE, "PROTEIN")
+    // var bars = g.selectAll('.bar')
+    // bars.enter()
+    highlightBar(proteins)
+
+    g.selectAll('.xaxis_bar')
+      .attr('opacity', 0)
+
+    addScatter();
+    highlightScatter(proteins)
+
+    g.selectAll('.xaxis_bar')
+      .attr('opacity', 0)
+
+    g.selectAll('.inactive_scatter')
+      .attr('opacity', 0.2)
+  };
+
+  /**
+   * showProteins
+   *
+   * hides: bars that aren't protein and scatter
+   * shows: protein bars only
+   *
+   */
+  function showProteins() {
+    var proteins = filterByGroup(dataSortedByGHGE, "PROTEIN")
+    xBarScale.domain(proteins.map(function(d){ return d.name; }))
+    addBars(proteins)
+
+    g.selectAll('.inactive_bar')
+      .attr('opacity', 0)
+
+    addLabels()
+
+    g.selectAll('.scatter')
+      .attr('opacity', 0)
+
+    g.selectAll('.scatter_pts').remove()
+  };
+
+
+  /**
+  * HELPER FUNCTIONS FOR displays
+  * used where repeated functionality needed
+  *
+  */
+
+  function showTooltips(a, dataSortedByGHGE) {
+    var xPos2 = xBarScale(d3.select(a).datum().name);
+    var yPos2 = yBarScale(d3.select(a).datum().ghge_portion);
+    var name = d3.select(a).datum().name;
+    var dataPoint = filterByName(dataSortedByGHGE, name);
+    var portion = d3.select(a).datum().portion_desc;
+
+    g.selectAll(".mouse_annotation")
+      .data(dataPoint, function(d) { return d.name; })
+      .attr('opacity', 1.0);
+
+    var highlightedBar = g.selectAll(".active_bar")
+      .data(dataPoint, function(d) { return d.name; })
+      .style("stroke-width", "1");
+
+    var highlightedBarE = highlightedBar.enter();
+
+    highlightedBar
+      .exit()
+      .attr('opacity', 0.4)
+      .style("stroke-width", "0");
+
+  };
+
+  // Undoes the highlighting from displayName (removes stroke and tooltip)
+  function undisplay () {
+    g.selectAll(".mouse_annotation")
+      .attr('opacity', 0);
+    g.selectAll(".active_bar")
+        .attr('opacity', 1.0)
+        .style("stroke-width", "0");
   }
+
+  function addBars(data){
+    var bars = g.selectAll('.bar')
+      .data(data, function(d) { return d.name })
+      .attr('class', 'bar active_bar')
+      .attr('x', function(d) { return xBarScale(d.name); })
+      .attr('y', function(d) { return yBarScale(d.ghge_portion); })//function (d) {return yBarScale(d.ghge_portion);})
+      .attr('fill', function (d) { return d.color; })
+      // .attr('width', xBarScale.bandwidth())
+      // .attr('height', function (d) {return yBarScale(d.ghge_portion);})
+      .style("stroke", "black")
+      .style("stroke-width", "0")
+      .attr('opacity', 1.0)
+      .on("mouseover",	function(){ var element = this;
+                                    return showTooltips(element, dataSortedByGHGE); })
+      .on("mouseout", undisplay)
+
+    bars.enter()
+      .append('rect')
+      .attr('class', 'bar active_bar')
+      .attr('x', function(d) { return xBarScale(d.name); })
+      .attr('y', function(d) { return yBarScale(d.ghge_portion); })//function (d) {return yBarScale(d.ghge_portion);})
+      .attr('fill', function (d) { return d.color; })
+      // .attr('width', xBarScale.bandwidth())
+      // .attr('height', function (d) {return yBarScale(d.ghge_portion);})
+      .style("stroke", "black")
+      .style("stroke-width", "0")
+      .attr('opacity', 1.0)
+      .on("mouseover",	function(){ var element = this;
+                                    return showTooltips(element, dataSortedByGHGE); })
+      .on("mouseout", undisplay)
+
+    bars.exit()
+      .attr("height", 0) //remove()
+      .classed('active_bar', false)
+      .classed('inactive_bar', true)
+
+    slowTransition();
+
+  };
+
+  function addLabels() {
+    g.selectAll('.xaxis_bar')
+      .call(d3.axisBottom(xBarScale))
+      .selectAll("text")
+        .style("text-anchor", "end")
+        .attr("dx", "-.8em")
+        .attr("dy", "-0.5em")
+        .attr("transform", "rotate(-65)")
+
+    g.selectAll('.yaxis_bar')
+      .call(d3.axisLeft(yBarScale))
+
+
+    g.selectAll('.xaxis_bar').selectAll('path').remove()
+
+    g.selectAll('.xaxis_bar')
+      .transition()
+      .duration(600)
+      .attr('opacity', 1)
+
+    g.selectAll('.yaxis_bar')
+      .transition()
+      .duration(600)
+      .attr('opacity', 1)
+
+  };
+
+  function highlightBar(data) {
+    var highlightedBar = g.selectAll(".bar")
+      .data(data, function(d) { return d.name; })
+
+    var highlightedBarE = highlightedBar.enter();
+
+    highlightedBar
+      .exit()
+      .attr('opacity', 0.2)
+      .classed('active_bar', false)
+      .classed('inactive_bar', true)
+      .on("mouseover",	function(){})
+
+  };
 
   function addScatter(data){
     var circles = g.selectAll(".scatter")
@@ -428,43 +587,6 @@ var scrollVis = function () {
 
   }
 
-
-
-  function highlightMeats() {
-    xBarScale.domain(dataSortedByGHGE.map(function(d){ return d.name; }))
-    addBars(dataSortedByGHGE)
-
-    var meats = filterByGroup(dataSortedByGHGE, "MEAT")
-
-    highlightBar(meats)
-
-    addScatter();
-    highlightScatter(meats)
-
-    g.selectAll('.xaxis_bar')
-      .attr('opacity', 0)
-
-    g.selectAll('.inactive_scatter')
-      .attr('opacity', 0.2)
-
-
-  }
-
-  function highlightBar(data) {
-    var highlightedBar = g.selectAll(".bar")
-      .data(data, function(d) { return d.name; })
-
-    var highlightedBarE = highlightedBar.enter();
-
-    highlightedBar
-      .exit()
-      .attr('opacity', 0.2)
-      .classed('active_bar', false)
-      .classed('inactive_bar', true)
-      .on("mouseover",	function(){})
-
-  }
-
   function highlightScatter(data) {
     var highlightedScatter = g.selectAll(".scatter_pts")
       .data(data, function(d) { return d.name; });
@@ -475,147 +597,9 @@ var scrollVis = function () {
       .classed('inactive_scatter', true)
       .attr('opacity', 0.2);
 
-      scatterTransition();
+    scatterTransition();
 
-  }
-
-  /**
-   * showGrid - square grid
-   *
-   * hides: bars that aren't meat
-   * shows: meat bars only
-   *
-   */
-  function showMeats() {
-    var meats = filterByGroup(dataSortedByGHGE, "MEAT")
-    xBarScale.domain(meats.map(function(d){ return d.name; }))
-    addBars(meats)
-
-    g.selectAll('.inactive_bar')
-      .attr('opacity', 0)
-
-    addLabels()
-
-    g.selectAll('.scatter')
-      .attr('opacity', 0)
-
-    g.selectAll('.scatter_pts').remove()
-
-  }
-
-  function addLabels() {
-    g.selectAll('.xaxis_bar')
-      .call(d3.axisBottom(xBarScale))
-      .selectAll("text")
-        .style("text-anchor", "end")
-        .attr("dx", "-.8em")
-        .attr("dy", "-0.5em")
-        .attr("transform", "rotate(-65)")
-
-    g.selectAll('.yaxis_bar')
-      .call(d3.axisLeft(yBarScale))
-
-
-    g.selectAll('.xaxis_bar').selectAll('path').remove()
-
-    g.selectAll('.xaxis_bar')
-      .transition()
-      .duration(600)
-      .attr('opacity', 1)
-
-    g.selectAll('.yaxis_bar')
-      .transition()
-      .duration(600)
-      .attr('opacity', 1)
-
-  }
-
-  function highlightProteins() {
-    xBarScale.domain(dataSortedByGHGE.map(function(d){ return d.name; }))
-    addBars(dataSortedByGHGE)
-    var proteins = filterByGroup(dataSortedByGHGE, "PROTEIN")
-    // var bars = g.selectAll('.bar')
-    // bars.enter()
-    highlightBar(proteins)
-
-    g.selectAll('.xaxis_bar')
-      .attr('opacity', 0)
-
-    addScatter();
-    highlightScatter(proteins)
-
-    g.selectAll('.xaxis_bar')
-      .attr('opacity', 0)
-
-    g.selectAll('.inactive_scatter')
-      .attr('opacity', 0.2)
-  }
-
-  /**
-   * showGrid - square grid
-   *
-   * hides: bars that aren't meat
-   * shows: meat bars only
-   *
-   */
-  function showProteins() {
-    var proteins = filterByGroup(dataSortedByGHGE, "PROTEIN")
-    xBarScale.domain(proteins.map(function(d){ return d.name; }))
-    addBars(proteins)
-
-    g.selectAll('.inactive_bar')
-      .attr('opacity', 0)
-
-    addLabels()
-
-    g.selectAll('.scatter')
-      .attr('opacity', 0)
-
-    g.selectAll('.scatter_pts').remove()
-  }
-
-
-  function addBars(data){
-    var bars = g.selectAll('.bar')
-      .data(data, function(d) { return d.name })
-      .attr('class', 'bar active_bar')
-      .attr('x', function(d) { return xBarScale(d.name); })
-      .attr('y', function(d) { return yBarScale(d.ghge_portion); })//function (d) {return yBarScale(d.ghge_portion);})
-      .attr('fill', function (d) { return d.color; })
-      // .attr('width', xBarScale.bandwidth())
-      // .attr('height', function (d) {return yBarScale(d.ghge_portion);})
-      .style("stroke", "black")
-      .style("stroke-width", "0")
-      .attr('opacity', 1.0)
-      .on("mouseover",	function(){ var element = this;
-                                    return showTooltips(element, dataSortedByGHGE); })
-      .on("mouseout", undisplay)
-
-
-    bars.enter()
-      .append('rect')
-      .attr('class', 'bar active_bar')
-      .attr('x', function(d) { return xBarScale(d.name); })
-      .attr('y', function(d) { return yBarScale(d.ghge_portion); })//function (d) {return yBarScale(d.ghge_portion);})
-      .attr('fill', function (d) { return d.color; })
-      // .attr('width', xBarScale.bandwidth())
-      // .attr('height', function (d) {return yBarScale(d.ghge_portion);})
-      .style("stroke", "black")
-      .style("stroke-width", "0")
-      .attr('opacity', 1.0)
-      .on("mouseover",	function(){ var element = this;
-                                    return showTooltips(element, dataSortedByGHGE); })
-      .on("mouseout", undisplay)
-
-
-    bars.exit()
-      .attr("height", 0) //remove()
-      .classed('active_bar', false)
-      .classed('inactive_bar', true)
-
-    slowTransition();
-
-  }
+  };
 
   function slowTransition() {
     g.selectAll('.active_bar')
@@ -623,15 +607,15 @@ var scrollVis = function () {
       .duration(600)
       .attr('height', function (d) {return height_top - yBarScale(d.ghge_portion);})
       .attr('width', xBarScale.bandwidth())
-      // .attr('opacity', 1.0)
-  }
+  };
 
   function scatterTransition() {
     g.selectAll('.active_scatter')
       .transition()
       .duration(600)
       .attr('opacity', 1.0)
-  }
+  };
+
 
 
   /**
