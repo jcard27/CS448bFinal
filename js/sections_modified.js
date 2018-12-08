@@ -478,8 +478,6 @@ var scrollVis = function () {
     var dataPoint = d3.select(element).data();
     dataPoint[0].num_servings += 1
 
-    console.log(dataPoint)
-
     var dietGHGE = g.selectAll('.dietGHGE')
     .data(dataPoint, function(d) { return d.name; })
     .enter()
@@ -487,6 +485,17 @@ var scrollVis = function () {
     .attr('class', 'dietGHGE')
 
     var dietItems = g.selectAll('.dietGHGE').data();
+
+    // var meats = filterByGroup(dietItems, "MEAT")
+    var proteins = filterByGroup(dietItems, "PROTEIN")
+    var beverages = filterByGroup(dietItems, "BEVERAGE")
+    var dairy = filterByGroup(dietItems, "DAIRY")
+    var fruits = filterByGroup(dietItems, "FRUITS")
+    var veg = filterByGroup(dietItems, "VEGETABLES")
+    var grains = filterByGroup(dietItems, "GRAINS")
+
+    dietItems = proteins.concat(beverages, dairy, fruits, veg, grains)
+
     var prev_serv = 0;
     var prev_ghge = 0;
     dietItems.forEach( function(d) {
@@ -495,6 +504,14 @@ var scrollVis = function () {
       prev_serv = d.num_servings
       prev_ghge += d.num_servings*d.ghge_portion
     })
+
+
+
+    console.log(dietItems)
+    // console.log(meats)
+    // console.log(fruits)
+    // var ordered = meats.concat(fruits)
+    // console.log(ordered)
 
     g.selectAll('.dietGHGE')
       .transition()
@@ -789,7 +806,6 @@ var scrollVis = function () {
    */
   chart.activate = function (index) {
     activeIndex = index;
-    console.log(index)
     var sign = (activeIndex - lastIndex) < 0 ? -1 : 1;
     var scrolledSections = d3.range(lastIndex + sign, activeIndex + sign, sign);
     scrolledSections.forEach(function (i) {
