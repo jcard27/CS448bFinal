@@ -1,3 +1,8 @@
+//BUGS TO WORK OUT:
+// scrolling fast leaves certain elements shown
+// when mouseover scatter pt, unstable sometimes
+// axes visible at wrong times
+
 
 /**
  * scrollVis - encapsulates
@@ -8,9 +13,9 @@
 var scrollVis = function () {
   // constants to define the size
   // and margins of the vis area.
-  var width = 600;
+  var width = 650;
   var height = window.innerHeight - 100//500;//700;//800;//520;
-  var margin = { top: 0, left: 100, bottom: 50, right: 10 }; // Changes margin between vis and other things
+  var margin = { top: 30, left: 100, bottom: 50, right: 70 }; // Changes margin between vis and other things
   var margin_between_plots = 100;
   var height_top = height/2 - margin_between_plots/2;
   var height_bot = height_top;
@@ -194,7 +199,7 @@ var scrollVis = function () {
     activateFunctions[4] = showMeats;
     activateFunctions[5] = highlightProteins;
     activateFunctions[6] = showProteins;
-    // activateFunctions[5] = showHistPart;
+    activateFunctions[7] = showDietPlanner;
     // activateFunctions[6] = showHistAll;
     // activateFunctions[7] = showCough;
     // activateFunctions[8] = showHistAll;
@@ -424,6 +429,20 @@ var scrollVis = function () {
       .attr('opacity', 0)
 
     g.selectAll('.scatter_pts').remove()
+
+  };
+
+  /**
+   * showProteins
+   *
+   * hides: bars that aren't protein and scatter
+   * shows: protein bars only
+   *
+   */
+  function showDietPlanner() {
+    xBarScale.domain(dataSortedByGHGE.map(function(d){ return d.name; }))
+    addBars(dataSortedByGHGE)
+    console.log('diet')
   };
 
 
@@ -441,37 +460,47 @@ var scrollVis = function () {
     var name = d3.select(a).datum().name;
     var dataPoint = filterByName(dataSortedByGHGE, name);
 
-    var annotations = g.selectAll(".mouse_annotation")
+    var annotations = g.selectAll(".bar_annotation")
       .data(dataPoint, function(d) { return d.name; })
       .enter()
 
     annotations.append('text')
-      .attr('class', 'mouse_annotation')
+      .attr('class', 'bar_annotation mouse_annotation')
       .attr('x', function(d) { return xBarScale(d.name); })
       .attr('y', function(d) { return yBarScale(d.ghge_portion) - 14; })
       .text(function(d) { return d.name })
     annotations.append('text')
-      .attr('class', 'mouse_annotation')
+      .attr('class', 'bar_annotation mouse_annotation')
       .attr('x', function(d) { return xBarScale(d.name); })
       .attr('y', function(d) { return yBarScale(d.ghge_portion) - 3; })
       .text(function(d) { return d.portion_desc })
 
-    annotations.append('text')
-      .attr('class', 'mouse_annotation')
-      .attr("x", function (d) {return xScatterScale(d.kcal_portion);})
-      .attr("y", function (d) {return height_top + margin_between_plots + yScatterScale(d.ghge_portion);})
-      .text(function(d) { return d.name })
 
     var highlightedBar = g.selectAll(".active_bar")
       .data(dataPoint, function(d) { return d.name; })
       .style("stroke-width", "1");
 
-    var highlightedBarE = highlightedBar.enter();
+    var highlightedBarE = highlightedBar.enter()
+    .append('text')
+
+    // highlightedBar.selectAll('text')
+    //   .attr('class', 'mouse_annotation')
+    //   .attr('x', function(d) { return xBarScale(d.name); })
+    //   .attr('y', function(d) { return yBarScale(d.ghge_portion) - 14; })
+    //   .text(function(d) { return d.name })
+    // .append('text')
+    //   .attr('class', 'mouse_annotation')
+    //   .attr('x', function(d) { return xBarScale(d.name); })
+    //   .attr('y', function(d) { return yBarScale(d.ghge_portion) - 3; })
+    //   .text(function(d) { return d.portion_desc })
+
 
     highlightedBar
       .exit()
       .attr('opacity', 0.4)
       .style("stroke-width", "0");
+
+    // console.log(highlightedBar.data())
 
     var highlightedScatter = g.selectAll(".active_scatter")
       .data(dataPoint, function(d) { return d.name; })
@@ -485,6 +514,19 @@ var scrollVis = function () {
       .exit()
       .attr('opacity', inactive_opac)
       .style("stroke-width", "0");
+
+    var scatterAnnotations = g.selectAll('.scatter_annotation')
+      .data(highlightedScatter.data(), function(d) { return d.name })
+      .enter()
+
+    scatterAnnotations.append('text')
+      .attr('class', 'scatter_annotation mouse_annotation')
+      .attr("x", function (d) {return xScatterScale(d.kcal_portion);})
+      .attr("y", function (d) {return height_top + margin_between_plots + yScatterScale(d.ghge_portion);})
+      .classed('scatter', true)
+      .text(function(d) { return d.name })
+
+      console.log(highlightedScatter.data())
 
   };
 
@@ -558,15 +600,15 @@ var scrollVis = function () {
 
     g.selectAll('.xaxis_bar').selectAll('path').remove()
 
-    g.selectAll('.xaxis_bar')
-      .transition()
-      .duration(600)
-      .attr('opacity', 1)
-
-    g.selectAll('.yaxis_bar')
-      .transition()
-      .duration(600)
-      .attr('opacity', 1)
+    // g.selectAll('.xaxis_bar')
+    //   .transition()
+    //   .duration(600)
+    //   .attr('opacity', 1)
+    //
+    // g.selectAll('.yaxis_bar')
+    //   .transition()
+    //   .duration(600)
+    //   .attr('opacity', 1)
 
   };
 
@@ -617,15 +659,15 @@ var scrollVis = function () {
      .classed('scatter', true)
      .call(d3.axisLeft(yScatterScale))
 
-     g.selectAll('.yaxis_scatter')
-      .transition()
-      .duration(600)
-      .attr('opacity', 1)
-
-      g.selectAll('.xaxis_scatter')
-       .transition()
-       .duration(600)
-       .attr('opacity', 1)
+     // g.selectAll('.yaxis_scatter')
+     //  .transition()
+     //  .duration(600)
+     //  .attr('opacity', 1)
+     //
+     //  g.selectAll('.xaxis_scatter')
+     //   .transition()
+     //   .duration(600)
+     //   .attr('opacity', 1)
 
   }
 
@@ -707,6 +749,7 @@ var scrollVis = function () {
    */
   chart.activate = function (index) {
     activeIndex = index;
+    console.log(index)
     var sign = (activeIndex - lastIndex) < 0 ? -1 : 1;
     var scrolledSections = d3.range(lastIndex + sign, activeIndex + sign, sign);
     scrolledSections.forEach(function (i) {
