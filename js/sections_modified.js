@@ -441,9 +441,26 @@ var scrollVis = function () {
     var name = d3.select(a).datum().name;
     var dataPoint = filterByName(dataSortedByGHGE, name);
 
-    g.selectAll(".mouse_annotation")
+    var annotations = g.selectAll(".mouse_annotation")
       .data(dataPoint, function(d) { return d.name; })
-      .attr('opacity', 1.0);
+      .enter()
+
+    annotations.append('text')
+      .attr('class', 'mouse_annotation')
+      .attr('x', function(d) { return xBarScale(d.name); })
+      .attr('y', function(d) { return yBarScale(d.ghge_portion) - 14; })
+      .text(function(d) { return d.name })
+    annotations.append('text')
+      .attr('class', 'mouse_annotation')
+      .attr('x', function(d) { return xBarScale(d.name); })
+      .attr('y', function(d) { return yBarScale(d.ghge_portion) - 3; })
+      .text(function(d) { return d.portion_desc })
+
+    annotations.append('text')
+      .attr('class', 'mouse_annotation')
+      .attr("x", function (d) {return xScatterScale(d.kcal_portion);})
+      .attr("y", function (d) {return height_top + margin_between_plots + yScatterScale(d.ghge_portion);})
+      .text(function(d) { return d.name })
 
     var highlightedBar = g.selectAll(".active_bar")
       .data(dataPoint, function(d) { return d.name; })
@@ -473,8 +490,8 @@ var scrollVis = function () {
 
   // Undoes the highlighting from displayName (removes stroke and tooltip)
   function undisplay () {
-    g.selectAll(".mouse_annotation")
-      .attr('opacity', 0);
+    g.selectAll(".mouse_annotation").remove()
+      // .attr('opacity', 0);
 
     g.selectAll(".active_bar")
         .attr('opacity', 1.0)
