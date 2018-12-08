@@ -28,6 +28,7 @@ var scrollVis = function () {
   // activate functions that they pass.
   var lastIndex = -1;
   var activeIndex = 0;
+  var dietPlanner = 0;
 
   // Sizing for the grid visualization
   var squareSize = 6;
@@ -58,6 +59,8 @@ var scrollVis = function () {
   var yScatterScale = d3.scaleLinear()
     .range([height_top, 0]);
 
+  var yDietScale = d3.scaleLinear()
+    .range([0, height_top]);
 
 
   // When scrolling to a new section
@@ -105,6 +108,7 @@ var scrollVis = function () {
       var maxY = d3.max(dataSortedByGHGE, function (d) { return d.ghge_portion; });
       yBarScale.domain([0, maxY + 0.05*maxY])
       yScatterScale.domain([0, maxY + 0.05*maxY])
+      yDietScale.domain([0, maxY + 0.05*maxY])
 
       xBarScale.domain(dataSortedByGHGE.map(function(d){ return d.name; }))
 
@@ -292,6 +296,7 @@ var scrollVis = function () {
    *
    */
   function showGrid() {
+    dietPlanner = 0;
     g.selectAll('.count-title')
       .transition()
       .duration(0)
@@ -321,6 +326,7 @@ var scrollVis = function () {
    *
    */
   function showCalories() {
+    dietPlanner = 0;
     // xScatterScale.domain(dataSortedByGHGE.map(function(d){ return d.name; }))
     addScatter();
     scatterTransition();
@@ -337,6 +343,7 @@ var scrollVis = function () {
    *
    */
   function highlightMeats() {
+    dietPlanner = 0;
     xBarScale.domain(dataSortedByGHGE.map(function(d){ return d.name; }))
     addBars(dataSortedByGHGE)
 
@@ -363,6 +370,7 @@ var scrollVis = function () {
    *
    */
   function showMeats() {
+    dietPlanner = 0;
     var meats = filterByGroup(dataSortedByGHGE, "MEAT")
     xBarScale.domain(meats.map(function(d){ return d.name; }))
     addBars(meats)
@@ -388,6 +396,7 @@ var scrollVis = function () {
    *
    */
   function highlightProteins() {
+    dietPlanner = 0;
     xBarScale.domain(dataSortedByGHGE.map(function(d){ return d.name; }))
     addBars(dataSortedByGHGE)
     var proteins = filterByGroup(dataSortedByGHGE, "PROTEIN")
@@ -416,6 +425,7 @@ var scrollVis = function () {
    *
    */
   function showProteins() {
+    dietPlanner = 0;
     var proteins = filterByGroup(dataSortedByGHGE, "PROTEIN")
     xBarScale.domain(proteins.map(function(d){ return d.name; }))
     addBars(proteins)
@@ -440,9 +450,17 @@ var scrollVis = function () {
    *
    */
   function showDietPlanner() {
+    dietPlanner = 1;
     xBarScale.domain(dataSortedByGHGE.map(function(d){ return d.name; }))
     addBars(dataSortedByGHGE)
-    console.log('diet')
+
+    g.selectAll('.xaxis_scatter')
+     .attr('opacity', 1)
+
+     g.selectAll('.yaxis_scatter')
+      .attr('opacity', 1)
+
+
   };
 
 
@@ -455,6 +473,44 @@ var scrollVis = function () {
   * used where repeated functionality needed
   *
   */
+
+  function addToDiet(element) {
+    var dataPoint = d3.select(element).data();
+    dataPoint[0].num_servings += 1
+
+    console.log(dataPoint)
+
+    var dietGHGE = g.selectAll('.dietGHGE')
+    .data(dataPoint, function(d) { return d.name; })
+    .enter()
+    .append('rect')
+    .attr('class', 'dietGHGE')
+
+    var dietItems = g.selectAll('.dietGHGE').data();
+    var prev_serv = 0;
+    var prev_ghge = 0;
+    dietItems.forEach( function(d) {
+      d.num_servings_prev_food = prev_serv;
+      d.ghge_portion_prev_food = prev_ghge;
+      prev_serv = d.num_servings
+      prev_ghge += d.num_servings*d.ghge_portion
+    })
+
+    g.selectAll('.dietGHGE')
+      .transition()
+      .attr('x', function(d) { return 100 })
+      .attr("y", function (d) {return height - yDietScale(d.ghge_portion_prev_food + d.num_servings*d.ghge_portion);})
+      .attr('height', function(d) { return yDietScale(d.num_servings*d.ghge_portion) })
+      .attr('width', 20)
+      .attr('fill', function(d) { return d.color })
+
+      console.log(height + margin.bottom)
+      console.log(yDietScale(0))
+      console.log(yDietScale(1))
+      console.log(yDietScale(2))
+
+    // g.selectAll('')
+  }
 
   function showTooltips(a, dataSortedByGHGE) {
     var name = d3.select(a).datum().name;
@@ -483,24 +539,10 @@ var scrollVis = function () {
     var highlightedBarE = highlightedBar.enter()
     .append('text')
 
-    // highlightedBar.selectAll('text')
-    //   .attr('class', 'mouse_annotation')
-    //   .attr('x', function(d) { return xBarScale(d.name); })
-    //   .attr('y', function(d) { return yBarScale(d.ghge_portion) - 14; })
-    //   .text(function(d) { return d.name })
-    // .append('text')
-    //   .attr('class', 'mouse_annotation')
-    //   .attr('x', function(d) { return xBarScale(d.name); })
-    //   .attr('y', function(d) { return yBarScale(d.ghge_portion) - 3; })
-    //   .text(function(d) { return d.portion_desc })
-
-
     highlightedBar
       .exit()
       .attr('opacity', 0.4)
       .style("stroke-width", "0");
-
-    // console.log(highlightedBar.data())
 
     var highlightedScatter = g.selectAll(".active_scatter")
       .data(dataPoint, function(d) { return d.name; })
@@ -525,8 +567,6 @@ var scrollVis = function () {
       .attr("y", function (d) {return height_top + margin_between_plots + yScatterScale(d.ghge_portion);})
       .classed('scatter', true)
       .text(function(d) { return d.name })
-
-      console.log(highlightedScatter.data())
 
   };
 
@@ -560,6 +600,9 @@ var scrollVis = function () {
       .on("mouseover",	function(){ var element = this;
                                     return showTooltips(element, dataSortedByGHGE); })
       .on("mouseout", undisplay)
+      .on("click", function() { if (dietPlanner > 0) { var element = this;
+          return addToDiet(element) }
+        });
 
     bars.enter()
       .append('rect')
@@ -575,6 +618,9 @@ var scrollVis = function () {
       .on("mouseover",	function(){ var element = this;
                                     return showTooltips(element, dataSortedByGHGE); })
       .on("mouseout", undisplay)
+      .on("click", function() { if (dietPlanner > 0) { var element = this;
+          return addToDiet(element) }
+        });
 
     bars.exit()
       .attr("height", 0) //remove()
@@ -659,15 +705,15 @@ var scrollVis = function () {
      .classed('scatter', true)
      .call(d3.axisLeft(yScatterScale))
 
-     // g.selectAll('.yaxis_scatter')
-     //  .transition()
-     //  .duration(600)
-     //  .attr('opacity', 1)
-     //
-     //  g.selectAll('.xaxis_scatter')
-     //   .transition()
-     //   .duration(600)
-     //   .attr('opacity', 1)
+     g.selectAll('.yaxis_scatter')
+      .transition()
+      .duration(600)
+      .attr('opacity', 1)
+
+      g.selectAll('.xaxis_scatter')
+       .transition()
+       .duration(600)
+       .attr('opacity', 1)
 
   }
 
@@ -836,7 +882,10 @@ function parseInputRow (d) {
        protein : +d.Protein,
        oil : +d.Oil,
        beverage : +d.Beverage,
-       color: d.color
+       color: d.color,
+       num_servings: 0,
+       num_servings_prev_food: 0,
+       ghge_portion_prev_food: 0
    };
 };
 
@@ -853,7 +902,6 @@ function loadData(loadedData){
                      } else if (d.protein> 0) {d.color = color = "#ff7f00"
                    } else if (d.beverage> 0) {d.color = color = "#DAA520" //"#a65628"
                    } else {d.color = "#80b1d3"}
-                   d.num_servings = 0;
                    })
    display(csvData);
 };
