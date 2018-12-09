@@ -63,6 +63,9 @@ var scrollVis = function () {
   var yDietScale = d3.scaleLinear()
     .range([0, height_top]);
 
+  var yDVScale = d3.scaleLinear()
+    .range([0, height_top]);
+
 
   // When scrolling to a new section
   // the activation function for that
@@ -111,6 +114,7 @@ var scrollVis = function () {
       yBarScale.domain([0, maxY + 0.05*maxY])
       yScatterScale.domain([0, maxY + 0.05*maxY])
       yDietScale.domain([0, 10*maxY + 0.05*(10*maxY)])
+      yDVScale.domain([0, 150])
 
       xBarScale.domain(dataSortedByGHGE.map(function(d){ return d.name; }))
 
@@ -497,49 +501,57 @@ var scrollVis = function () {
   function addToDiet(element) {
     var name = d3.select(element).datum().name;
     addServing(name)
-    // dataPoint[0].num_servings += 1
-
     var dietData = filterByServings(dataSortedByGHGE)
 
-
-
-      // .on("click", function(d){removeServing(dietItems, d3.select(this).datum().name)
-      //                            filteredData = filterByServings(csvData)
-      //                            if (d3.select(this).datum().num_servings == 0){
-      //                            d3.select(this).remove();}
-      //                            else {plate.selectAll("text")
-      //                                             .data(filteredData, function(d){return d.name})
-      //                                             .attr("class", "plateText")
-      //                                             .text(function(d){return d.num_servings + "X " + d.name + ", " + d.portion_desc})}
-      //                            updateBars()})
       updateDietVis(dietData)
       g_dp.selectAll('.dietList')
       .on("click", function(d){removeServing( d3.select(this).datum().name)
                                 dietData = filterByServings(dataSortedByGHGE)
                                 return updateDietVis(dietData) })
-
-
   }
 
   function updateDietVis(dietData) {
     var dietGHGE = g.selectAll('.dietGHGE')
       .data(dietData, function(d) { return d.name; })
-
-      dietGHGE
-      .enter()
+    dietGHGE.enter()
       .append('rect')
       .attr('class', 'dietGHGE')
-
     dietGHGE.exit().remove();
+
+    var dietKcal = g.selectAll('.dietKcal')
+      .data(dietData, function(d) { return d.name; })
+    dietKcal.enter()
+      .append('rect')
+      .attr('class', 'dietKcal')
+    dietKcal.exit().remove();
+
+    var dietCarb = g.selectAll('.dietCarb')
+      .data(dietData, function(d) { return d.name; })
+    dietCarb.enter()
+      .append('rect')
+      .attr('class', 'dietCarb')
+    dietCarb.exit().remove();
+
+    var dietProtein = g.selectAll('.dietProtein')
+      .data(dietData, function(d) { return d.name; })
+    dietProtein.enter()
+      .append('rect')
+      .attr('class', 'dietProtein')
+    dietProtein.exit().remove();
+
+    var dietFat = g.selectAll('.dietFat')
+      .data(dietData, function(d) { return d.name; })
+    dietFat.enter()
+      .append('rect')
+      .attr('class', 'dietFat')
+    dietFat.exit().remove();
+
 
     var dietList = g_dp.selectAll('.dietList')
       .data(dietData, function(d) { return d.name; })
-
-      dietList
-      .enter()
+    dietList.enter()
       .append('text')
       .attr('class', 'dietList')
-
     dietList.exit().remove();
 
     var dietItems = g.selectAll('.dietGHGE').data();
@@ -558,14 +570,26 @@ var scrollVis = function () {
 
     var prev_serv = 0;
     var prev_ghge = 0;
+    var prev_kcal = 0;
+    var prev_carb = 0;
+    var prev_protein = 0;
+    var prev_fat = 0;
     var order_index = 0;
     dietItems.forEach( function(d) {
-      d.num_servings_prev_food = prev_serv;
+      // d.num_servings_prev_food = prev_serv;
       d.ghge_portion_prev_food = prev_ghge;
+      d.kcal_prev = prev_kcal;
+      d.carb_prev = prev_carb;
+      d.protein_prev = prev_protein;
+      d.fat_prev = prev_fat;
       d.order_index = order_index;
       order_index += 1;
-      prev_serv = d.num_servings
+      // prev_serv = d.num_servings
       prev_ghge += d.num_servings*d.ghge_portion
+      prev_kcal += d.num_servings*d.kcal_portion
+      prev_carb += d.num_servings*d.carb_portion
+      prev_protein += d.num_servings*d.protein_portion
+      prev_fat += d.num_servings*d.fat_portion
     })
 
     g.selectAll('.dietGHGE')
@@ -575,28 +599,44 @@ var scrollVis = function () {
       .attr('width', 20)
       .attr('fill', function(d) { return d.color })
 
+    g.selectAll('.dietKcal')
+      .attr('x', function(d) { return 250 })
+      .attr("y", function (d) {return height - yDVScale( 100*(d.kcal_prev + d.num_servings*d.kcal_portion)/2000 );})
+      .attr('height', function(d) { return yDVScale( 100*(d.num_servings*d.kcal_portion)/2000 ) + 0.5 })
+      .attr('width', 20)
+      .attr('fill', function(d) { return d.color })
+
+    g.selectAll('.dietCarb')
+      .attr('x', function(d) { return 300 })
+      .attr("y", function (d) {return height - yDVScale( 100*(d.carb_prev + d.num_servings*d.carb_portion)/320 );})
+      .attr('height', function(d) { return yDVScale( 100*d.num_servings*d.carb_portion/320 ) + 0.5 })
+      .attr('width', 20)
+      .attr('fill', function(d) { return d.color })
+
+    g.selectAll('.dietProtein')
+      .attr('x', function(d) { return 350 })
+      .attr("y", function (d) {return height - yDVScale( 100*(d.protein_prev + d.num_servings*d.protein_portion)/50 );})
+      .attr('height', function(d) { return yDVScale(100*d.num_servings*d.protein_portion/50) + 0.5 })
+      .attr('width', 20)
+      .attr('fill', function(d) { return d.color })
+
+    g.selectAll('.dietFat')
+      .attr('x', function(d) { return 400 })
+      .attr("y", function (d) {return height - yDVScale( 100*(d.fat_prev + d.num_servings*d.fat_portion)/70 );})
+      .attr('height', function(d) { return yDVScale( 100*(d.num_servings*d.fat_portion)/70 ) + 0.5 })
+      .attr('width', 20)
+      .attr('fill', function(d) { return d.color })
+
     g_dp.selectAll('.dietList')
       .attr('fill', function(d) { return d.color })
       .attr('x', function(d) { return 0 })
       .attr("y", function (d) {return d.order_index * 13;}) //height_top + margin_between_plots +
       .text(function(d) { return d.num_servings + 'X ' + d.name + ': ' + d.portion_desc })
-  }
+  };
 
-  function addServing(name) {
-    dataSortedByGHGE.forEach(function(d){
-      if (d.name.toUpperCase() == name.toUpperCase()) {
-        d.num_servings = d.num_servings + 1;
-      }
-    })
-  }
 
-  function removeServing(name) {
-    dataSortedByGHGE.forEach(function(d){
-      if (d.name.toUpperCase() == name.toUpperCase()) {
-        d.num_servings = d.num_servings - 1;
-      }
-    })
-  }
+
+
 
 
   function showTooltips(a, dataSortedByGHGE) {
@@ -844,6 +884,22 @@ var scrollVis = function () {
    *
    */
 
+   function addServing(name) {
+     dataSortedByGHGE.forEach(function(d){
+       if (d.name.toUpperCase() == name.toUpperCase()) {
+         d.num_servings = d.num_servings + 1;
+       }
+     })
+   }
+
+   function removeServing(name) {
+     dataSortedByGHGE.forEach(function(d){
+       if (d.name.toUpperCase() == name.toUpperCase()) {
+         d.num_servings = d.num_servings - 1;
+       }
+     })
+   }
+
    function filterByServings(data) {
        var filteredPoints = data.filter(function (d) {
          return d.num_servings > 0
@@ -981,7 +1037,11 @@ function parseInputRow (d) {
        num_servings: 0,
        num_servings_prev_food: 0,
        ghge_portion_prev_food: 0,
-       order_index: 0
+       order_index: 0,
+       kcal_prev: 0,
+       carb_prev: 0,
+       protein_prev: 0,
+       fat_prev: 0
    };
 };
 
