@@ -495,22 +495,56 @@ var scrollVis = function () {
   */
 
   function addToDiet(element) {
-    var dataPoint = d3.select(element).data();
-    dataPoint[0].num_servings += 1
+    var name = d3.select(element).datum().name;
+    addServing(name)
+    // dataPoint[0].num_servings += 1
 
+    var dietData = filterByServings(dataSortedByGHGE)
+
+
+
+      // .on("click", function(d){removeServing(dietItems, d3.select(this).datum().name)
+      //                            filteredData = filterByServings(csvData)
+      //                            if (d3.select(this).datum().num_servings == 0){
+      //                            d3.select(this).remove();}
+      //                            else {plate.selectAll("text")
+      //                                             .data(filteredData, function(d){return d.name})
+      //                                             .attr("class", "plateText")
+      //                                             .text(function(d){return d.num_servings + "X " + d.name + ", " + d.portion_desc})}
+      //                            updateBars()})
+      updateDietVis(dietData)
+      g_dp.selectAll('.dietList')
+      .on("click", function(d){removeServing( d3.select(this).datum().name)
+                                dietData = filterByServings(dataSortedByGHGE)
+                                return updateDietVis(dietData) })
+
+
+  }
+
+  function updateDietVis(dietData) {
     var dietGHGE = g.selectAll('.dietGHGE')
-      .data(dataPoint, function(d) { return d.name; })
+      .data(dietData, function(d) { return d.name; })
+
+      dietGHGE
       .enter()
       .append('rect')
       .attr('class', 'dietGHGE')
 
+    dietGHGE.exit().remove();
+
     var dietList = g_dp.selectAll('.dietList')
-      .data(dataPoint, function(d) { return d.name; })
+      .data(dietData, function(d) { return d.name; })
+
+      dietList
       .enter()
       .append('text')
       .attr('class', 'dietList')
 
+    dietList.exit().remove();
+
     var dietItems = g.selectAll('.dietGHGE').data();
+
+    dietItems = filterByServings(dietItems)
 
     var meats = filterByGroup(dietItems, "MEAT")
     var proteins = filterByGroup(dietItems, "PROTEIN-NONMEAT")
@@ -543,14 +577,27 @@ var scrollVis = function () {
 
     g_dp.selectAll('.dietList')
       .attr('fill', function(d) { return d.color })
-      // .attr('width', 50)
-      // .attr('height', 50)
       .attr('x', function(d) { return 0 })
       .attr("y", function (d) {return d.order_index * 13;}) //height_top + margin_between_plots +
       .text(function(d) { return d.num_servings + 'X ' + d.name + ': ' + d.portion_desc })
-
-
   }
+
+  function addServing(name) {
+    dataSortedByGHGE.forEach(function(d){
+      if (d.name.toUpperCase() == name.toUpperCase()) {
+        d.num_servings = d.num_servings + 1;
+      }
+    })
+  }
+
+  function removeServing(name) {
+    dataSortedByGHGE.forEach(function(d){
+      if (d.name.toUpperCase() == name.toUpperCase()) {
+        d.num_servings = d.num_servings - 1;
+      }
+    })
+  }
+
 
   function showTooltips(a, dataSortedByGHGE) {
     var name = d3.select(a).datum().name;
@@ -796,6 +843,13 @@ var scrollVis = function () {
    * formats we need to visualize
    *
    */
+
+   function filterByServings(data) {
+       var filteredPoints = data.filter(function (d) {
+         return d.num_servings > 0
+       });
+       return filteredPoints;
+   };
 
    function sortDataByGHGE(rawData){
      sortedData = rawData.sort(function(x, y){
