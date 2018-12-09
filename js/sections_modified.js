@@ -21,6 +21,7 @@ var scrollVis = function () {
   var height_bot = height_top;
   var inactive_opac = 0.2;
 
+
   // Keep track of which visualization
   // we are on and which was the last
   // index activated. When user scrolls
@@ -96,6 +97,7 @@ var scrollVis = function () {
       svg.append('g');
 
 
+
       // this group element will be used to contain all
       // other elements.
       g = svg.select('g')
@@ -132,6 +134,24 @@ var scrollVis = function () {
    * @param histData - binned histogram data
    */
   var setupVis = function (dataSortedByGHGE){//wordData, fillerCounts, histData) {
+
+    var svg_dp = d3.select('#diet_planner_section').selectAll('svg').data([dataSortedByGHGE]);
+    var svg_dpE = svg_dp.enter().append('svg')
+    svg_dp = svg_dp.merge(svg_dpE)
+
+    svg_dp.attr('width', 350);
+    svg_dp.attr('height', 1000);
+
+    svg_dp.append('g')
+
+    g_dp = svg_dp.select('g')
+    .attr('transform', `translate(0, ${0, 50})`)
+
+    // g_dp.append('rect')
+    //   .attr('x', 0)
+    //   .attr('y', 0)
+    //   .attr('width', 200)
+    //   .attr('height', 200)
 
     g.append('g')
       .attr('transform', `translate(0, ${height_top})`)
@@ -479,10 +499,16 @@ var scrollVis = function () {
     dataPoint[0].num_servings += 1
 
     var dietGHGE = g.selectAll('.dietGHGE')
-    .data(dataPoint, function(d) { return d.name; })
-    .enter()
-    .append('rect')
-    .attr('class', 'dietGHGE')
+      .data(dataPoint, function(d) { return d.name; })
+      .enter()
+      .append('rect')
+      .attr('class', 'dietGHGE')
+
+    var dietList = g_dp.selectAll('.dietList')
+      .data(dataPoint, function(d) { return d.name; })
+      .enter()
+      .append('text')
+      .attr('class', 'dietList')
 
     var dietItems = g.selectAll('.dietGHGE').data();
 
@@ -498,19 +524,31 @@ var scrollVis = function () {
 
     var prev_serv = 0;
     var prev_ghge = 0;
+    var order_index = 0;
     dietItems.forEach( function(d) {
       d.num_servings_prev_food = prev_serv;
       d.ghge_portion_prev_food = prev_ghge;
+      d.order_index = order_index;
+      order_index += 1;
       prev_serv = d.num_servings
       prev_ghge += d.num_servings*d.ghge_portion
     })
 
     g.selectAll('.dietGHGE')
-      .attr('x', function(d) { return 100 })
+      .attr('x', function(d) { return 200 })
       .attr("y", function (d) {return height - yDietScale(d.ghge_portion_prev_food + d.num_servings*d.ghge_portion);})
-      .attr('height', function(d) { return yDietScale(d.num_servings*d.ghge_portion) })
+      .attr('height', function(d) { return yDietScale(d.num_servings*d.ghge_portion) + 0.5 })
       .attr('width', 20)
       .attr('fill', function(d) { return d.color })
+
+    g_dp.selectAll('.dietList')
+      .attr('fill', function(d) { return d.color })
+      // .attr('width', 50)
+      // .attr('height', 50)
+      .attr('x', function(d) { return 0 })
+      .attr("y", function (d) {return d.order_index * 13;}) //height_top + margin_between_plots +
+      .text(function(d) { return d.num_servings + 'X ' + d.name + ': ' + d.portion_desc })
+
 
   }
 
@@ -888,7 +926,8 @@ function parseInputRow (d) {
        color: d.color,
        num_servings: 0,
        num_servings_prev_food: 0,
-       ghge_portion_prev_food: 0
+       ghge_portion_prev_food: 0,
+       order_index: 0
    };
 };
 

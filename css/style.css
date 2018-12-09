@@ -65,6 +65,13 @@
   /* text-anchor: middle; */
 }
 
+#sections .dietList {
+  font-family: Arial,Helvetica,"san-serif";
+  font-weight: bold;
+  font-size:12px;
+  /* text-anchor: middle; */
+}
+
 .axis path,
 .axis line {
   fill: none;
