@@ -72,6 +72,13 @@
   /* text-anchor: middle; */
 }
 
+.legend {
+  font-family: Arial,Helvetica,"san-serif";
+  font-weight: bold;
+  font-size:12px;
+  /* text-anchor: middle; */
+}
+
 .axis path,
 .axis line {
   fill: none;

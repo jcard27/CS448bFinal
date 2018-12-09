@@ -60,11 +60,26 @@ var scrollVis = function () {
   var yScatterScale = d3.scaleLinear()
     .range([height_top, 0]);
 
+
+  var xDiet = 100
+  var barWidth = 50
+  var ghge_label = [{name: ''},{name: 'Total Emissions'},{name: ''}]
+  var xDietScale = d3.scaleBand()
+    .range([xDiet + barWidth/2, xDiet + barWidth/2])
+    .domain(ghge_label.map(function(d){ return d.name; }))
+
+
   var yDietScale = d3.scaleLinear()
     .range([0, height_top]);
 
   var yDVScale = d3.scaleLinear()
     .range([0, height_top]);
+
+  var q1 = 1.94;
+  var med = 2.8;
+  var q5 = 6.91;
+  yDietScale.domain([0, q5 + 0.05*(q5)])
+  yDVScale.domain([0, 150])
 
 
   // When scrolling to a new section
@@ -114,8 +129,6 @@ var scrollVis = function () {
       var maxY = d3.max(dataSortedByGHGE, function (d) { return d.ghge_portion; });
       yBarScale.domain([0, maxY + 0.05*maxY])
       yScatterScale.domain([0, maxY + 0.05*maxY])
-      yDietScale.domain([0, 10*maxY + 0.05*(10*maxY)])
-      yDVScale.domain([0, 150])
 
       xBarScale.domain(dataSortedByGHGE.map(function(d){ return d.name; }))
 
@@ -171,6 +184,11 @@ var scrollVis = function () {
       .attr('transform', `translate(0, ${height})`)
       .attr("class", "xaxis_scatter")
       .attr('opacity', 0)
+
+      g.append('g')
+        .attr('transform', `translate(0, ${height})`)
+        .attr("class", "xaxis_diet")
+        .attr('opacity', 0)
 
     g.append('g')
       .attr('transform', `translate(0, ${height_top + margin_between_plots})`)
@@ -240,7 +258,7 @@ var scrollVis = function () {
     // for all scrolling and so are set to
     // no-op functions.
     for (var i = 0; i < 9; i++) {
-      updateFunctions[i] = function () {};
+      updateFunctions[i] = undisplay; //function () {};
     }
     updateFunctions[2] = undisplay;
   };
@@ -465,6 +483,9 @@ var scrollVis = function () {
 
     g.selectAll('.scatter_pts').remove()
 
+    g.selectAll('.diet')
+        .attr('opacity', 0)
+
   };
 
   /**
@@ -479,12 +500,25 @@ var scrollVis = function () {
     xBarScale.domain(dataSortedByGHGE.map(function(d){ return d.name; }))
     addBars(dataSortedByGHGE)
 
-    g.selectAll('.xaxis_scatter')
-     .attr('opacity', 1)
+    g.selectAll('.scatter')
+      .attr('opacity', 0)
 
-     g.selectAll('.yaxis_scatter')
-      .attr('opacity', 1)
+      g.selectAll('.xaxis_diet')
+       .classed('diet', true)
+       .call(d3.axisBottom(xDietScale))
 
+      g.selectAll('.xaxis_diet')
+        .selectAll("text")
+          .style("text-anchor", "end")
+          .attr("dx", "-.8em")
+          .attr("dy", "-0.5em")
+          .attr("transform", "rotate(-65)")
+
+      g.selectAll('.diet')
+          .attr('opacity', 1)
+
+console.log('...')
+      makeLegend();
 
 
 
@@ -500,6 +534,76 @@ var scrollVis = function () {
   * used where repeated functionality needed
   *
   */
+
+  function makeLegend() {
+
+  //   if (d.fruit > 0) {d.color = color = "#f781bf"
+  // } else if (d.veg > 0) {d.color = color = "#4daf4a"
+  //   } else if (d.dairy > 0) {d.color = color = "#377eb8"
+  //   } else if (d.meat > 0) {d.color = color = "#e41a1c"
+  // } else if (d.grain > 0) {d.color = color = "#a65628"
+  //   } else if (d.oil> 0) {d.color = color = "#ffff33"
+  //   } else if (d.protein> 0) {d.color = color = "#ff7f00"
+  // } else if (d.beverage> 0) {d.color = color = "#DAA520" //"#a65628"
+  // } else {d.color = "#80b1d3"}
+
+    // var categories = ["Meat", "Protein (non-meat)", "Beverage" ,"Dairy","Fruits", "Vegetables", "Grains"];
+    var xLeg = 300;
+    var yLeg = 0;
+    var legSize = 12;
+    var legMarg = 4;
+    var entries = [{name: "Meat", color: "#e41a1c", order_index:0, tag: "MEAT"},
+                   {name: "Protein (non-meat)", color: "#ff7f00",order_index:1, tag: "PROTEIN-NONMEAT"},
+                   {name: "Vegetables", color:"#4daf4a",order_index:2, tag: "VEGETABLES"},
+                   {name: "Fruit", color: "#f781bf",order_index:3, tag: "FRUITS"},
+                   {name: "Grains", color: "#a65628", order_index: 4, tag: "GRAINS"},
+                   {name: "Dairy", color: "#377eb8", order_index: 5, tag: "DAIRY"},
+                   {name: "Beverages", color: "#DAA520", order_index: 6, tag: "BEVERAGE"},
+                   {name: "All Foods", color: 'black', order_index: 7, tag: ""}];
+
+    var legend = g.selectAll('.legend')
+      .data(entries, function(d) { return d.name })
+      .enter()
+
+    console.log('leg')
+
+    // g.append('rect')
+    // .attr('x', xLeg)
+    // .attr('y', yLeg)
+    // .attr('height', 100)
+    // .attr('width', 100)
+
+    legend.append('rect')
+      .attr('class', 'legend')
+      .attr('x', xLeg)
+      .attr('y', function (d) { return yLeg + d.order_index*(legSize+legMarg) })
+      .attr('height', legSize)
+      .attr('width', legSize)
+      .attr('fill', function (d) { return d.color })
+      .on("click", function(d){var element = this
+                               return legendClick(element)})
+
+    legend.append('text')
+      .attr('class', 'legend')
+      .attr('alignment-baseline', 'hanging')
+      .attr('x', xLeg + legSize + legMarg)
+      .attr('y', function (d) { return yLeg + d.order_index*(legSize+legMarg) })
+      .text(function (d) { return d.name })
+      .on("click", function(d){var element = this
+                               return legendClick(element)})
+      // .on("click", function(d){group = filterByGroup(dataSortedByGHGE, d3.select(this).datum().tag)
+      //                                   xBarScale.domain(group.map(function(d){ return d.name; }))
+      //                                   return addBars(group)})
+
+  }
+
+  function legendClick(element){
+    var group = filterByGroup(dataSortedByGHGE, d3.select(element).datum().tag)
+                                      var maxY = d3.max(group, function (d) { return d.ghge_portion; });
+                                      yBarScale.domain([0, maxY + 0.05*maxY])
+                                      xBarScale.domain(group.map(function(d){ return d.name; }))
+                                      return addBars(group)
+  }
 
   function addToDiet(element) {
     var name = d3.select(element).datum().name;
@@ -519,6 +623,7 @@ var scrollVis = function () {
     dietGHGE.enter()
       .append('rect')
       .attr('class', 'dietGHGE')
+      .classed('diet', true)
     dietGHGE.exit().remove();
 
     var dietKcal = g.selectAll('.dietKcal')
@@ -526,6 +631,7 @@ var scrollVis = function () {
     dietKcal.enter()
       .append('rect')
       .attr('class', 'dietKcal')
+      .classed('diet', true)
     dietKcal.exit().remove();
 
     var dietCarb = g.selectAll('.dietCarb')
@@ -533,6 +639,7 @@ var scrollVis = function () {
     dietCarb.enter()
       .append('rect')
       .attr('class', 'dietCarb')
+      .classed('diet', true)
     dietCarb.exit().remove();
 
     var dietProtein = g.selectAll('.dietProtein')
@@ -540,6 +647,7 @@ var scrollVis = function () {
     dietProtein.enter()
       .append('rect')
       .attr('class', 'dietProtein')
+      .classed('diet', true)
     dietProtein.exit().remove();
 
     var dietFat = g.selectAll('.dietFat')
@@ -547,14 +655,17 @@ var scrollVis = function () {
     dietFat.enter()
       .append('rect')
       .attr('class', 'dietFat')
+      .classed('diet', true)
     dietFat.exit().remove();
 
 
     var dietList = g_dp.selectAll('.dietList')
       .data(dietData, function(d) { return d.name; })
+      .classed('diet', true)
     dietList.enter()
       .append('text')
       .attr('class', 'dietList')
+      .classed('diet', true)
     dietList.exit().remove();
 
     var dietItems = g.selectAll('.dietGHGE').data();
@@ -596,10 +707,10 @@ var scrollVis = function () {
     })
 
     g.selectAll('.dietGHGE')
-      .attr('x', function(d) { return 200 })
+      .attr('x', function(d) { return xDiet })
       .attr("y", function (d) {return height - yDietScale(d.ghge_portion_prev_food + d.num_servings*d.ghge_portion);})
       .attr('height', function(d) { return yDietScale(d.num_servings*d.ghge_portion) + 0.5 })
-      .attr('width', 20)
+      .attr('width', barWidth)
       .attr('fill', function(d) { return d.color })
 
     g.selectAll('.dietKcal')
@@ -716,11 +827,12 @@ var scrollVis = function () {
   }
 
   function addBars(data){
+
     var bars = g.selectAll('.bar')
       .data(data, function(d) { return d.name })
       .attr('class', 'bar active_bar')
-      .attr('x', function(d) { return xBarScale(d.name); })
-      .attr('y', function(d) { return yBarScale(d.ghge_portion); })//function (d) {return yBarScale(d.ghge_portion);})
+      // .attr('x', function(d) { return xBarScale(d.name); })
+      // .attr('y', function(d) { return yBarScale(d.ghge_portion); })//function (d) {return yBarScale(d.ghge_portion);})
       .attr('fill', function (d) { return d.color; })
       // .attr('width', xBarScale.bandwidth())
       // .attr('height', function (d) {return yBarScale(d.ghge_portion);})
@@ -737,8 +849,8 @@ var scrollVis = function () {
     bars.enter()
       .append('rect')
       .attr('class', 'bar active_bar')
-      .attr('x', function(d) { return xBarScale(d.name); })
-      .attr('y', function(d) { return yBarScale(d.ghge_portion); })//function (d) {return yBarScale(d.ghge_portion);})
+      // .attr('x', function(d) { return xBarScale(d.name); })
+      // .attr('y', function(d) { return yBarScale(d.ghge_portion); })//function (d) {return yBarScale(d.ghge_portion);})
       .attr('fill', function (d) { return d.color; })
       // .attr('width', xBarScale.bandwidth())
       // .attr('height', function (d) {return yBarScale(d.ghge_portion);})
@@ -756,6 +868,11 @@ var scrollVis = function () {
       .attr("height", 0) //remove()
       .classed('active_bar', false)
       .classed('inactive_bar', true)
+
+      g.selectAll('active_bar')
+      .transition()
+      .duration(600)
+      .attr('width', xBarScale.bandwidth())
 
     slowTransition();
 
@@ -866,6 +983,8 @@ var scrollVis = function () {
     g.selectAll('.active_bar')
       .transition()
       .duration(600)
+      .attr('x', function(d) { return xBarScale(d.name); })
+      .attr('y', function(d) { return yBarScale(d.ghge_portion); })
       .attr('height', function (d) {return height_top - yBarScale(d.ghge_portion);})
       .attr('width', xBarScale.bandwidth())
   };
