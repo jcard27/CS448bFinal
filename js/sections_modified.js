@@ -106,6 +106,7 @@ var scrollVis = function () {
       g = svg.select('g')
         .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
 
+
       // // // // perform some preprocessing on raw data
       // var wordData = getWords(rawData);
 
@@ -176,38 +177,38 @@ var scrollVis = function () {
       .attr("class", "yaxis_scatter")
       .attr('opacity', 0)
 
-    // count openvis title
-    g.append('text')
-      .attr('class', 'title openvis-title')
-      .attr('x', width / 2)
-      .attr('y', height / 3)
-      .text('2013');
-
-    g.append('text')
-      .attr('class', 'sub-title openvis-title')
-      .attr('x', width / 2)
-      .attr('y', (height / 3) + (height / 5))
-      .text('OpenVis Conf');
-
-    g.selectAll('.openvis-title')
-      .attr('opacity', 0);
-
-    // count filler word count title
-    g.append('text')
-      .attr('class', 'title count-title highlight')
-      .attr('x', width / 2)
-      .attr('y', height / 3)
-      .text('180');
-
-    g.append('text')
-      .attr('class', 'sub-title count-title')
-      .attr('x', width / 2)
-      .attr('y', (height / 3) + (height / 5))
-      .text('Filler Words');
-
-    g.selectAll('.count-title')
-      .attr('opacity', 0);
-
+  //   // count openvis title
+  //   g.append('text')
+  //     .attr('class', 'title openvis-title')
+  //     .attr('x', width / 2)
+  //     .attr('y', height / 3)
+  //     .text('2013');
+  //
+  //   g.append('text')
+  //     .attr('class', 'sub-title openvis-title')
+  //     .attr('x', width / 2)
+  //     .attr('y', (height / 3) + (height / 5))
+  //     .text('OpenVis Conf');
+  //
+  //   g.selectAll('.openvis-title')
+  //     .attr('opacity', 0);
+  //
+  //   // count filler word count title
+  //   g.append('text')
+  //     .attr('class', 'title count-title highlight')
+  //     .attr('x', width / 2)
+  //     .attr('y', height / 3)
+  //     .text('180');
+  //
+  //   g.append('text')
+  //     .attr('class', 'sub-title count-title')
+  //     .attr('x', width / 2)
+  //     .attr('y', (height / 3) + (height / 5))
+  //     .text('Filler Words');
+  //
+  //   g.selectAll('.count-title')
+  //     .attr('opacity', 0);
+  //
   };
 
   /**
@@ -220,7 +221,7 @@ var scrollVis = function () {
   var setupSections = function (dataSortedByGHGE) {
     // activateFunctions are called each
     // time the active section changes
-    activateFunctions[0] = showFillerTitle;
+    activateFunctions[0] = showGrid;
     activateFunctions[1] = showGrid;
     activateFunctions[2] = showCalories;
     activateFunctions[3] = highlightMeats;//showMeats;
@@ -483,6 +484,8 @@ var scrollVis = function () {
 
      g.selectAll('.yaxis_scatter')
       .attr('opacity', 1)
+
+
 
 
   };
