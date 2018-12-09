@@ -135,6 +135,10 @@ var scrollVis = function () {
       var maxKcal = d3.max(dataSortedByGHGE, function (d) { return d.kcal_portion; });
       xScatterScale.domain([0, maxKcal + 0.05*maxKcal])
 
+
+      miles1 = 0.41
+      miles5 = 5*miles1;
+
       setupVis(dataSortedByGHGE);//(wordData, fillerCounts, histData);
 
       setupSections(dataSortedByGHGE);
@@ -194,6 +198,14 @@ var scrollVis = function () {
       .attr('transform', `translate(0, ${height_top + margin_between_plots})`)
       .attr("class", "yaxis_scatter")
       .attr('opacity', 0)
+
+    g.append('line')
+      .attr('class', 'refLine mile1')
+      .attr('opacity', 0)
+
+      g.append('line')
+        .attr('class', 'refLine mile5')
+        .attr('opacity', 0)
 
   //   // count openvis title
   //   g.append('text')
@@ -361,39 +373,47 @@ var scrollVis = function () {
         .attr('opacity', 0)
 
       g.selectAll('.scatter_pts').remove()
+
+      g.selectAll('.mile5')
+        .attr('opacity', 0)
+        .attr('x2', 0)
   };
 
   function show5Miles() {
-    var miles5 = 5*0.41;
 
-    var miles5line = g.append('line')
+
+    var miles5line = g.selectAll('.mile5')//g.append('line')
       .attr('x1', 0)
       .attr('x2', width)
       .attr('y1', yBarScale(miles5))
       .attr('y2', yBarScale(miles5))
-      .attr('class', 'refLine 5mile')
-      .attr('opacity', 0)
+      // .attr('class', 'refLine mile5')
+      // .attr('opacity', 0)
 
     miles5line
       .transition()
       .duration(600)
       .attr('opacity', 1.0)
 
-    g.selectAll('.mile1').remove()
+    g.selectAll('.mile1').attr('x2', 0)
+
+    g.selectAll('.mile1')
+      .attr('opacity', 0)
+      .attr('x2', 0)
 
       // .attr('class refLine barPlot')
   }
 
   function show1Mile() {
-    var miles1 = 0.41;
+    // var miles1 = 0.41;
 
-    var mile1line = g.append('line')
+    var mile1line = g.selectAll('.mile1')//g.append('line')
       .attr('x1', 0)
       .attr('x2', width)
       .attr('y1', yBarScale(miles1))
       .attr('y2', yBarScale(miles1))
-      .attr('class', 'refLine mile1')
-      .attr('opacity', 0)
+      // .attr('class', 'refLine mile1')
+      // .attr('opacity', 0)
 
     mile1line
       .transition()
@@ -918,6 +938,9 @@ console.log('...')
     //   .attr('class', 'bar active_bar')
     //   .attr('height', 0)
 
+
+      // .moveToFront()
+
     var bars = g.selectAll('.bar')
       .data(data, function(d) { return d.name })
       .attr('class', 'bar active_bar')
@@ -963,6 +986,24 @@ console.log('...')
       .transition()
       .duration(600)
       .attr('width', xBarScale.bandwidth())
+
+      g.selectAll('.mile5')
+      .moveToFront()
+      g.selectAll('.mile5')
+        .transition()
+        .duration(600)
+        .attr('y1', yBarScale(miles5))
+        .attr('y2', yBarScale(miles5))
+
+        g.selectAll('.mile1')
+.moveToFront()
+      g.selectAll('.mile1')
+        .transition()
+        .duration(600)
+        .attr('y1', yBarScale(miles1))
+        .attr('y2', yBarScale(miles1))
+
+
 
     slowTransition();
 
@@ -1085,6 +1126,14 @@ console.log('...')
       .duration(600)
       .attr('opacity', 1.0)
   };
+
+  //Move element to front
+  //https://gist.github.com/trtg/3922684
+    d3.selection.prototype.moveToFront = function() {
+      return this.each(function(){
+        this.parentNode.appendChild(this);
+      });
+    };
 
 
 
