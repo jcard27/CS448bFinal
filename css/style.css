@@ -79,6 +79,12 @@
   /* text-anchor: middle; */
 }
 
+.refLine {
+  stroke-dasharray: 2;
+  stroke: gray;
+  stroke-width: 2;
+}
+
 .axis path,
 .axis line {
   fill: none;

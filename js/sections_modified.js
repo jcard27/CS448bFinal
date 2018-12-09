@@ -60,7 +60,7 @@ var scrollVis = function () {
   var yScatterScale = d3.scaleLinear()
     .range([height_top, 0]);
 
-
+  dietItems = []
   var xDiet = 100
   var barWidth = 50
   var ghge_label = [{name: ''},{name: 'Total Emissions'},{name: ''}]
@@ -240,13 +240,14 @@ var scrollVis = function () {
     // activateFunctions are called each
     // time the active section changes
     activateFunctions[0] = showGrid;
-    activateFunctions[1] = showGrid;
-    activateFunctions[2] = showCalories;
-    activateFunctions[3] = highlightMeats;//showMeats;
-    activateFunctions[4] = showMeats;
-    activateFunctions[5] = highlightProteins;
-    activateFunctions[6] = showProteins;
-    activateFunctions[7] = showDietPlanner;
+    activateFunctions[1] = show5Miles;
+    activateFunctions[2] = show1Mile;
+    activateFunctions[3] = showCalories;
+    activateFunctions[4] = highlightMeats;//showMeats;
+    activateFunctions[5] = showMeats;
+    activateFunctions[6] = highlightProteins;
+    activateFunctions[7] = showProteins;
+    activateFunctions[8] = showDietPlanner;
     // activateFunctions[6] = showHistAll;
     // activateFunctions[7] = showCough;
     // activateFunctions[8] = showHistAll;
@@ -351,6 +352,8 @@ var scrollVis = function () {
     //   .attr('height', function (d) {return yBarScale(d.ghge_portion);})
 
       xBarScale.domain(dataSortedByGHGE.map(function(d){ return d.name; }))
+      var maxY = d3.max(dataSortedByGHGE, function (d) { return d.ghge_portion; });
+      yBarScale.domain([0, maxY + 0.05*maxY])
       addBars(dataSortedByGHGE)
       // addBars(dataSortedByGHGE)
 
@@ -359,6 +362,46 @@ var scrollVis = function () {
 
       g.selectAll('.scatter_pts').remove()
   };
+
+  function show5Miles() {
+    var miles5 = 5*0.41;
+
+    var miles5line = g.append('line')
+      .attr('x1', 0)
+      .attr('x2', width)
+      .attr('y1', yBarScale(miles5))
+      .attr('y2', yBarScale(miles5))
+      .attr('class', 'refLine 5mile')
+      .attr('opacity', 0)
+
+    miles5line
+      .transition()
+      .duration(600)
+      .attr('opacity', 1.0)
+
+    g.selectAll('.mile1').remove()
+
+      // .attr('class refLine barPlot')
+  }
+
+  function show1Mile() {
+    var miles1 = 0.41;
+
+    var mile1line = g.append('line')
+      .attr('x1', 0)
+      .attr('x2', width)
+      .attr('y1', yBarScale(miles1))
+      .attr('y2', yBarScale(miles1))
+      .attr('class', 'refLine mile1')
+      .attr('opacity', 0)
+
+    mile1line
+      .transition()
+      .duration(600)
+      .attr('opacity', 1.0)
+
+      // .attr('class refLine barPlot')
+  }
 
   /**
    * showCalories - calorie scatter
@@ -374,6 +417,8 @@ var scrollVis = function () {
     addScatter();
     scatterTransition();
     xBarScale.domain(dataSortedByGHGE.map(function(d){ return d.name; }))
+    // var maxY = d3.max(dataSortedByGHGE, function (d) { return d.ghge_portion; });
+    // yBarScale.domain([0, maxY + 0.05*maxY])
     addBars(dataSortedByGHGE)
   };
 
@@ -388,6 +433,8 @@ var scrollVis = function () {
   function highlightMeats() {
     dietPlanner = 0;
     xBarScale.domain(dataSortedByGHGE.map(function(d){ return d.name; }))
+    var maxY = d3.max(dataSortedByGHGE, function (d) { return d.ghge_portion; });
+    yBarScale.domain([0, maxY + 0.05*maxY])
     addBars(dataSortedByGHGE)
 
     var meats = filterByGroup(dataSortedByGHGE, "MEAT")
@@ -416,6 +463,8 @@ var scrollVis = function () {
     dietPlanner = 0;
     var meats = filterByGroup(dataSortedByGHGE, "MEAT")
     xBarScale.domain(meats.map(function(d){ return d.name; }))
+    var maxY = d3.max(meats, function (d) { return d.ghge_portion; });
+    yBarScale.domain([0, maxY + 0.05*maxY])
     addBars(meats)
 
     g.selectAll('.inactive_bar')
@@ -441,6 +490,8 @@ var scrollVis = function () {
   function highlightProteins() {
     dietPlanner = 0;
     xBarScale.domain(dataSortedByGHGE.map(function(d){ return d.name; }))
+    var maxY = d3.max(dataSortedByGHGE, function (d) { return d.ghge_portion; });
+    yBarScale.domain([0, maxY + 0.05*maxY])
     addBars(dataSortedByGHGE)
     var proteins = filterByGroup(dataSortedByGHGE, "PROTEIN")
     // var bars = g.selectAll('.bar')
@@ -471,6 +522,8 @@ var scrollVis = function () {
     dietPlanner = 0;
     var proteins = filterByGroup(dataSortedByGHGE, "PROTEIN")
     xBarScale.domain(proteins.map(function(d){ return d.name; }))
+    var maxY = d3.max(proteins, function (d) { return d.ghge_portion; });
+    yBarScale.domain([0, maxY + 0.05*maxY])
     addBars(proteins)
 
     g.selectAll('.inactive_bar')
@@ -498,6 +551,8 @@ var scrollVis = function () {
   function showDietPlanner() {
     dietPlanner = 1;
     xBarScale.domain(dataSortedByGHGE.map(function(d){ return d.name; }))
+    var maxY = d3.max(dataSortedByGHGE, function (d) { return d.ghge_portion; });
+    yBarScale.domain([0, maxY + 0.05*maxY])
     addBars(dataSortedByGHGE)
 
     g.selectAll('.scatter')
@@ -559,7 +614,8 @@ console.log('...')
                    {name: "Grains", color: "#a65628", order_index: 4, tag: "GRAINS"},
                    {name: "Dairy", color: "#377eb8", order_index: 5, tag: "DAIRY"},
                    {name: "Beverages", color: "#DAA520", order_index: 6, tag: "BEVERAGE"},
-                   {name: "All Foods", color: 'black', order_index: 7, tag: ""}];
+                   {name: "All Foods", color: 'black', order_index: 7, tag: ""},
+                   {name: "My Foods", color: 'black', order_index: 8, tag: "DIET"}];
 
     var legend = g.selectAll('.legend')
       .data(entries, function(d) { return d.name })
@@ -597,14 +653,30 @@ console.log('...')
 
   }
 
+  /**
+  /
+  **/
   function legendClick(element){
+    if (dietPlanner > 0) {
+    if (d3.select(element).datum().tag.toUpperCase == "DIET") {
+      var group = sortByGHGE(dietItems)
+      var maxY = d3.max(group, function (d) { return d.ghge_portion; });
+      yBarScale.domain([0, maxY + 0.05*maxY])
+      xBarScale.domain(group.map(function(d){ return d.name; }))
+      return addBars(group)
+    } else{
     var group = filterByGroup(dataSortedByGHGE, d3.select(element).datum().tag)
                                       var maxY = d3.max(group, function (d) { return d.ghge_portion; });
                                       yBarScale.domain([0, maxY + 0.05*maxY])
                                       xBarScale.domain(group.map(function(d){ return d.name; }))
                                       return addBars(group)
-  }
+                                    }
+                                  }
+  };
 
+/**
+/
+**/
   function addToDiet(element) {
     var name = d3.select(element).datum().name;
     addServing(name)
@@ -668,7 +740,7 @@ console.log('...')
       .classed('diet', true)
     dietList.exit().remove();
 
-    var dietItems = g.selectAll('.dietGHGE').data();
+    dietItems = g.selectAll('.dietGHGE').data();
 
     dietItems = filterByServings(dietItems)
 
@@ -785,6 +857,17 @@ console.log('...')
       .attr('opacity', 0.4)
       .style("stroke-width", "0");
 
+      var highlightedText = g_dp.selectAll(".dietList")
+        .data(dataPoint, function(d) { return d.name; })
+
+      var highlightedTextE = highlightedBar.enter()
+      .append('text')
+
+      highlightedText
+        .exit()
+        .attr('opacity', inactive_opac)
+        // .style("stroke-width", "0");
+
     var highlightedScatter = g.selectAll(".active_scatter")
       .data(dataPoint, function(d) { return d.name; })
       .attr('r', 4)
@@ -824,9 +907,16 @@ console.log('...')
         .attr('opacity', 1.0)
         .attr('r', 3)
         .style("stroke-width", "0");
+
+  g_dp.selectAll(".dietList")
+    .attr('opacity', 1.0)
   }
 
   function addBars(data){
+    // var bars = g.selectAll('.bar')
+    //   .data(dataSortedByGHGE, function(d) { return d.name })
+    //   .attr('class', 'bar active_bar')
+    //   .attr('height', 0)
 
     var bars = g.selectAll('.bar')
       .data(data, function(d) { return d.name })
@@ -1046,6 +1136,9 @@ console.log('...')
 
    // Filter data to only return data with a score above minimumScore
    function filterByGroup(data, cat) {
+      if (cat.toUpperCase() == "DIET"){
+        return dietItems;
+      }
        var filteredPoints = data.filter(function (d) {
          if (cat.toUpperCase() == "FRUITS") {return d.fruit > 0
          } else if ( cat.toUpperCase() == "VEGETABLES") {return d.veg > 0
