@@ -1196,13 +1196,18 @@ var entries = [{name: "Meat", color: "#e41a1c", order_index:0, tag: "MEAT"},
     annotations.append('text')
       .attr('class', 'bar_annotation mouse_annotation')
       .attr('x', function(d) { return xBarScale(d.name); })
-      .attr('y', function(d) { return yBarScale(d.ghge_portion) - 14; })
+      .attr('y', function(d) { return yBarScale(d.ghge_portion) - 14-14; })
       .text(function(d) { return d.name })
     annotations.append('text')
       .attr('class', 'bar_annotation mouse_annotation')
       .attr('x', function(d) { return xBarScale(d.name); })
-      .attr('y', function(d) { return yBarScale(d.ghge_portion) - 3; })
+      .attr('y', function(d) { return yBarScale(d.ghge_portion) - 3-14; })
       .text(function(d) { return d.portion_desc })
+      annotations.append('text')
+        .attr('class', 'bar_annotation mouse_annotation')
+        .attr('x', function(d) { return xBarScale(d.name); })
+        .attr('y', function(d) { return yBarScale(d.ghge_portion) - 3; })
+        .text(function(d) { return d.ghge_portion.toFixed(2) + ' kg CO2 eq.' })
 
 
     var highlightedBar = g.selectAll(".active_bar")
@@ -1248,9 +1253,24 @@ var entries = [{name: "Meat", color: "#e41a1c", order_index:0, tag: "MEAT"},
     scatterAnnotations.append('text')
       .attr('class', 'scatter_annotation mouse_annotation')
       .attr("x", function (d) {return xScatterScale(d.kcal_portion);})
-      .attr("y", function (d) {return height_top + margin_between_plots + yScatterScale(d.ghge_portion);})
+      .attr("y", function (d) {return -14 + height_top + margin_between_plots + yScatterScale(d.ghge_portion);})
       .classed('scatter', true)
       .text(function(d) { return d.name })
+
+      scatterAnnotations.append('text')
+        .attr('class', 'scatter_annotation mouse_annotation')
+        .attr("x", function (d) {return xScatterScale(d.kcal_portion);})
+        .attr("y", function (d) {return  + height_top + margin_between_plots + yScatterScale(d.ghge_portion);})
+        .classed('scatter', true)
+        .text(function(d) { return d.portion_desc })
+
+        scatterAnnotations.append('text')
+          .attr('class', 'scatter_annotation mouse_annotation')
+          .attr("x", function (d) {return xScatterScale(d.kcal_portion);})
+          .attr("y", function (d) {return 14 + height_top + margin_between_plots + yScatterScale(d.ghge_portion);})
+          .classed('scatter', true)
+          .text(function(d) { return d.ghge_portion.toFixed(2) + ' kg CO2 eq.' })
+
 
   };
 
