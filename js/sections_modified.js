@@ -2,7 +2,17 @@
 // scrolling fast leaves certain elements shown
 // when mouseover scatter pt, unstable sometimes
 // axes visible at wrong times
+//clicking myfoods before any food is buggy
 
+//WISHLIST
+//would like to have axes scale when go over 150% DV or median in dp
+// smooth transitions
+
+//cite:
+//https://stackoverflow.com/questions/3664381/force-page-scroll-position-to-top-at-page-refresh-in-html
+window.onbeforeunload = function () {
+  window.scrollTo(0, 0);
+}
 
 /**
  * scrollVis - encapsulates
@@ -13,9 +23,9 @@
 var scrollVis = function () {
   // constants to define the size
   // and margins of the vis area.
-  var width = 500;//650;
+  var width = 470;//650;
   var height = window.innerHeight - 100//500;//700;//800;//520;
-  var margin = { top: 40, left: 100, bottom: 30, right: 150 }; // Changes margin between vis and other things
+  var margin = { top: 40, left: 100, bottom: 30, right: 230 }; // Changes margin between vis and other things
   var margin_between_plots = 100;
   var height_top = height/2 - margin_between_plots/2;
   var height_bot = height_top;
@@ -23,9 +33,13 @@ var scrollVis = function () {
   var xNutrients = 300;
   var nutBarWidth = 30;
   var nutBarMarg = 20;
-  var xDiet = 100
+  var xDiet = 0;
   var barWidth = 50
   var refOffset = 2
+  var xLeg = width + 50;
+  var yLeg = 50;
+  var legSize = 12;
+  var legMarg = 4;
 
 
 
@@ -504,12 +518,12 @@ var scrollVis = function () {
          .classed('axisLabel', true)
          .text("kg CO2 eq. per Serving")//" Equivalent per Serving")
 
-     svg.selectAll('.plotTitle_bar').remove()
-     svg.append('text')
+     g.selectAll('.plotTitle_bar').remove()
+     g.append('text')
         .attr("class", "plotTitle_bar")
         .attr("text-anchor", "middle")
-        .attr("x", margin.right + width/2)
-        .attr("y",margin.top - 25)
+        .attr("x", width/2)
+        .attr("y",height - 2*height_top - margin_between_plots - 25)
         .classed('plotTitle', true)
         .text("Greenhouse Gas Emissions from Food Items")
 
@@ -748,6 +762,11 @@ var scrollVis = function () {
    */
   function showDietPlanner() {
     dietPlanner = 1;
+    g.append('text')
+      .attr('x', xLeg)
+      .attr('y', yLeg - (legSize + legMarg))
+      .text('Click food group to filter')
+      .classed('diet', true)
 
     svg.selectAll('.yaxisLabel_diet').remove()
     svg.append('text')
@@ -755,7 +774,7 @@ var scrollVis = function () {
        .attr("class", "yaxisLabel_diet")
        .attr("text-anchor", "middle")
        .attr("x", -((height_top + margin.top + margin.bottom)/2 +height_top + margin_between_plots - margin.bottom))
-       .attr("y",xDiet + 50)
+       .attr("y", xDiet + 30)
        .classed('axisLabel', true)
        .classed('diet', true)
        // .attr('opacity', 0)
@@ -818,9 +837,11 @@ var scrollVis = function () {
       .selectAll("text")
       .classed('dpText', true)
 
+      var extension = 100
+
       g.selectAll('.mile5_d')//g.append('line')
         .attr('x2', xDiet - barWidth/2)
-        .attr('x1', xDiet + barWidth + 20)
+        .attr('x1', xDiet + barWidth + 20 + extension)
         .attr('y1', height - yDietScale(miles5))
         .attr('y2', height - yDietScale(miles5))
         .classed('diet', true)
@@ -829,7 +850,7 @@ var scrollVis = function () {
 
         g.selectAll('.mile1_d')//g.append('line')
           .attr('x2', xDiet - barWidth/2)
-          .attr('x1', xDiet + barWidth + 20)
+          .attr('x1', xDiet + barWidth + 20 + extension)
           .attr('y1', height - yDietScale(miles1))
           .attr('y2', height - yDietScale(miles1))
           .classed('diet', true)
@@ -838,7 +859,7 @@ var scrollVis = function () {
 
           g.selectAll('.med')//g.append('line')
             .attr('x2', xDiet - barWidth/2)
-            .attr('x1', xDiet + barWidth +20)
+            .attr('x1', xDiet + barWidth + 20 + extension)
             .attr('y1', height - yDietScale(med))
             .attr('y2', height - yDietScale(med))
             .classed('diet', true)
@@ -847,7 +868,7 @@ var scrollVis = function () {
 
       g.selectAll('.dv100')//g.append('line')
         .attr('x2', xNutrients)
-        .attr('x1', xNutrients + 4*(nutBarWidth + nutBarMarg))
+        .attr('x1', xNutrients + 4*(nutBarWidth + nutBarMarg) + extension)
         .attr('y1', height - yDVScale(100))
         .attr('y2', height - yDVScale(100))
         .classed('diet', true)
@@ -857,23 +878,23 @@ var scrollVis = function () {
 
         dv_refTxt
           .attr('opacity', 1)
-          .attr('x', xNutrients + 4*(nutBarWidth + nutBarMarg))
+          .attr('x', xNutrients + 4*(nutBarWidth + nutBarMarg)+  extension)
           .attr('y', height - yDVScale(100) - refOffset)
 
 
       mile5d_refTxt
         .attr('opacity', 1)
-        .attr('x', xDiet + barWidth + 20)
+        .attr('x', xDiet + barWidth + 20 + extension)
         .attr('y', height - yDietScale(miles5) - refOffset)
 
         mile1d_refTxt
           .attr('opacity', 1)
-          .attr('x', xDiet + barWidth + 20)
+          .attr('x', xDiet + barWidth + 20 + extension)
           .attr('y', height - yDietScale(miles1) - refOffset)
 
           med_refTxt
             .attr('opacity', 1)
-            .attr('x', xDiet + barWidth + 20)
+            .attr('x', xDiet + barWidth + 20 + extension)
             .attr('y', height - yDietScale(med) - refOffset)
 
 
@@ -915,22 +936,8 @@ var entries = [{name: "Meat", color: "#e41a1c", order_index:0, tag: "MEAT"},
   */
 
   function makeLegend(entries) {
-
-  //   if (d.fruit > 0) {d.color = color = "#f781bf"
-  // } else if (d.veg > 0) {d.color = color = "#4daf4a"
-  //   } else if (d.dairy > 0) {d.color = color = "#377eb8"
-  //   } else if (d.meat > 0) {d.color = color = "#e41a1c"
-  // } else if (d.grain > 0) {d.color = color = "#a65628"
-  //   } else if (d.oil> 0) {d.color = color = "#ffff33"
-  //   } else if (d.protein> 0) {d.color = color = "#ff7f00"
-  // } else if (d.beverage> 0) {d.color = color = "#DAA520" //"#a65628"
-  // } else {d.color = "#80b1d3"}
-
     // var categories = ["Meat", "Protein (non-meat)", "Beverage" ,"Dairy","Fruits", "Vegetables", "Grains"];
-    var xLeg = width + 20;
-    var yLeg = 0;
-    var legSize = 12;
-    var legMarg = 4;
+
     // var entries = [{name: "Meat", color: "#e41a1c", order_index:0, tag: "MEAT"},
     //                {name: "Protein (non-meat)", color: "#ff7f00",order_index:1, tag: "PROTEIN-NONMEAT"},
     //                {name: "Vegetables", color:"#4daf4a",order_index:2, tag: "VEGETABLES"},
@@ -1156,6 +1163,7 @@ var entries = [{name: "Meat", color: "#e41a1c", order_index:0, tag: "MEAT"},
       .text(function(d) { return d.num_servings + 'X ' + d.name})// + ': ' + d.portion_desc })
 
       g.selectAll('.dp_ref').moveToFront()
+      g.selectAll('.refTxt').moveToFront()
   };
 
 
@@ -1394,12 +1402,12 @@ var entries = [{name: "Meat", color: "#e41a1c", order_index:0, tag: "MEAT"},
   };
 
   function addScatter(data){
-    svg.selectAll('.plotTitle_scatter').remove()
-    svg.append('text')
+    g.selectAll('.plotTitle_scatter').remove()
+    g.append('text')
        .attr("class", "plotTitle_scatter")
        .attr("text-anchor", "middle")
-       .attr("x", margin.right + width/2)
-       .attr("y",height_top + margin.top + margin_between_plots - margin.bottom - 5)
+       .attr("x", width/2)
+       .attr("y", height - height_top - margin.bottom - 20)// + margin_between_plots - 5)
        .classed('plotTitle', true)
        // .attr('opacity', 0)
        .text("Greenhouse Gas Emissions vs. Calories")
@@ -1408,8 +1416,8 @@ var entries = [{name: "Meat", color: "#e41a1c", order_index:0, tag: "MEAT"},
        svg.append('text')
           .attr("class", "xaxisLabel_scatter")
           .attr("text-anchor", "middle")
-          .attr("x", width/2)
-          .attr("y",height + 30)
+          .attr("x", margin.left + width/2)
+          .attr("y",height + 40)
           .classed('axisLabel', true)
           // .attr('opacity', 0)
           .text("Calories per Serving")
