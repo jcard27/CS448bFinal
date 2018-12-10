@@ -1708,7 +1708,7 @@ function display(data) {
 // // load data and display
 // d3.tsv('data/words.tsv', display);
 
-d3.csv("/data/filtered_finalProjectDataset.csv", parseInputRow).then(loadData);
+d3.csv("filtered_finalProjectDataset.csv", parseInputRow).then(loadData);
 
 //Parse CSV rows and returns array of objects with the specified fields.
 function parseInputRow (d) {
