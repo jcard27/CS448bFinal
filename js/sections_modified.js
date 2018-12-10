@@ -35,7 +35,7 @@ var scrollVis = function () {
   var nutBarMarg = 20;
   var xDiet = 0;
   var barWidth = 50
-  var refOffset = 2
+  var refOffset = 3
   var xLeg = width + 50;
   var yLeg = 50;
   var legSize = 12;
@@ -205,6 +205,10 @@ var scrollVis = function () {
     g_dp = svg_dp.select('g')
     .attr('transform', `translate(0, ${0, 50})`)
 
+    g_dp.append('text')
+      .text('My Diet:')
+      .classed('title', true)
+
     // g_dp.append('rect')
     //   .attr('x', 0)
     //   .attr('y', 0)
@@ -324,6 +328,8 @@ var scrollVis = function () {
     .classed('diet', true)
     .attr('opacity', 0)
     .text("100% Daily Value")
+
+
 
   //   // count openvis title
   //   g.append('text')
@@ -534,6 +540,11 @@ var scrollVis = function () {
 
   function show5Miles() {
 
+    console.log([dataSortedByGHGE[0], dataSortedByGHGE[1], dataSortedByGHGE[3]])
+
+    var outliers = [dataSortedByGHGE[0], dataSortedByGHGE[1], dataSortedByGHGE[2]]
+    highlightBar(outliers)
+
     mile5_refTxt
     .attr('x', width - 50)
     .attr('y', yBarScale(miles5) - refOffset)
@@ -565,6 +576,7 @@ var scrollVis = function () {
 
   function show1Mile() {
     // var miles1 = 0.41;
+    addBars(dataSortedByGHGE)
 
     var mile1line = g.selectAll('.mile1')//g.append('line')
       .attr('x1', 0)
@@ -1033,6 +1045,7 @@ var entries = [{name: "Meat", color: "#e41a1c", order_index:0, tag: "MEAT"},
   }
 
   function updateDietVis(dietData) {
+    undisplay()
     var dietGHGE = g.selectAll('.dietGHGE')
       .data(dietData, function(d) { return d.name; })
     dietGHGE.enter()
@@ -1159,11 +1172,12 @@ var entries = [{name: "Meat", color: "#e41a1c", order_index:0, tag: "MEAT"},
     g_dp.selectAll('.dietList')
       .attr('fill', function(d) { return d.color })
       .attr('x', function(d) { return 0 })
-      .attr("y", function (d) {return d.order_index * 13;}) //height_top + margin_between_plots +
+      .attr("y", function (d) {return 15 + d.order_index * 13;}) //height_top + margin_between_plots +
       .text(function(d) { return d.num_servings + 'X ' + d.name})// + ': ' + d.portion_desc })
 
       g.selectAll('.dp_ref').moveToFront()
       g.selectAll('.refTxt').moveToFront()
+      g.selectAll('.xaxis_bar').moveToFront()
   };
 
 
@@ -1483,14 +1497,14 @@ var entries = [{name: "Meat", color: "#e41a1c", order_index:0, tag: "MEAT"},
       .duration(0)
       .attr('opacity', 1)
 
-      g.selectAll('.yaxis_scatter').selectAll('path').remove()
+      // g.selectAll('.yaxis_scatter').selectAll('path').remove()
 
       g.selectAll('.xaxis_scatter')
        .transition()
        .duration(0)
        .attr('opacity', 1)
 
-    g.selectAll('.xaxis_scatter').selectAll('path').remove()
+    // g.selectAll('.xaxis_scatter').selectAll('path').remove()
 
   }
 
