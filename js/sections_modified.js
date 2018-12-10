@@ -13,9 +13,9 @@
 var scrollVis = function () {
   // constants to define the size
   // and margins of the vis area.
-  var width = 550;//650;
+  var width = 500;//650;
   var height = window.innerHeight - 100//500;//700;//800;//520;
-  var margin = { top: 30, left: 100, bottom: 30, right: 70 }; // Changes margin between vis and other things
+  var margin = { top: 40, left: 100, bottom: 30, right: 150 }; // Changes margin between vis and other things
   var margin_between_plots = 100;
   var height_top = height/2 - margin_between_plots/2;
   var height_bot = height_top;
@@ -25,7 +25,7 @@ var scrollVis = function () {
   var nutBarMarg = 20;
   var xDiet = 100
   var barWidth = 50
-  var refOffset = 5
+  var refOffset = 2
 
 
 
@@ -91,12 +91,12 @@ var scrollVis = function () {
   var q1 = 1.94;
   var med = 2.8;
   var q5 = 6.91;
-  yDietScale.domain([0, q5 + 0.05*(q5)])
+  yDietScale.domain([0, med + 0.5*(med)])
   yDVScale.domain([0, 150])
 
   var yDietScaleAxis = d3.scaleLinear()
     .range([height_top, 0])
-    .domain([0, q5 + 0.05*(q5)]);
+    .domain([0, med + 0.5*(med)])
 
   var yDVScaleAxis = d3.scaleLinear()
     .range([height_top, 0])
@@ -159,6 +159,7 @@ var scrollVis = function () {
 
       miles1 = 0.41
       miles5 = 5*miles1;
+      med = 2.8;
 
       setupVis(dataSortedByGHGE);//(wordData, fillerCounts, histData);
 
@@ -253,8 +254,16 @@ var scrollVis = function () {
         .attr('opacity', 0)
 
         g.append('line')
-          .attr('class', 'refLine DV')
+          .attr('class', 'refLine mile10_d')
           .attr('opacity', 0)
+
+        g.append('line')
+          .attr('class', 'refLine dv100')
+          .attr('opacity', 0)
+
+          g.append('line')
+            .attr('class', 'refLine med')
+            .attr('opacity', 0)
 
     g_lab = svg.append('g')
     g_lab.append('text').attr('class', 'plotTitle_scatter')
@@ -263,9 +272,44 @@ var scrollVis = function () {
     mile5_refTxt = g.append('text')
     .attr("text-anchor", "end")
     .classed('refTxt', true)
-    .classed('.mile5', true)
+    .classed('mile5', true)
     .attr('opacity', 0)
     .text("5 Road Miles")
+
+    mile1_refTxt = g.append('text')
+    .attr("text-anchor", "end")
+    .classed('refTxt', true)
+    .classed('mile1', true)
+    .attr('opacity', 0)
+    .text("1 Road Mile")
+
+    mile5d_refTxt = g.append('text')
+    .attr("text-anchor", "end")
+    .classed('refTxt', true)
+    .classed('diet', true)
+    .attr('opacity', 0)
+    .text("5 Road Miles")
+
+    mile1d_refTxt = g.append('text')
+    .attr("text-anchor", "end")
+    .classed('refTxt', true)
+    .classed('diet', true)
+    .attr('opacity', 0)
+    .text("1 Road Mile")
+
+    med_refTxt = g.append('text')
+    .attr("text-anchor", "end")
+    .classed('refTxt', true)
+    .classed('diet', true)
+    .attr('opacity', 0)
+    .text("Median")
+
+    dv_refTxt = g.append('text')
+    .attr("text-anchor", "end")
+    .classed('refTxt', true)
+    .classed('diet', true)
+    .attr('opacity', 0)
+    .text("100% Daily Value")
 
   //   // count openvis title
   //   g.append('text')
@@ -464,8 +508,8 @@ var scrollVis = function () {
      svg.append('text')
         .attr("class", "plotTitle_bar")
         .attr("text-anchor", "middle")
-        .attr("x", width/2)
-        .attr("y",margin.top - 18)
+        .attr("x", margin.right + width/2)
+        .attr("y",margin.top - 25)
         .classed('plotTitle', true)
         .text("Greenhouse Gas Emissions from Food Items")
 
@@ -477,8 +521,8 @@ var scrollVis = function () {
   function show5Miles() {
 
     mile5_refTxt
-    .attr('x', width)
-    .attr('y', yBarScale(miles5) + refOffset)
+    .attr('x', width - 50)
+    .attr('y', yBarScale(miles5) - refOffset)
     .attr('opacity', 1)
 
     var miles5line = g.selectAll('.mile5')//g.append('line')
@@ -500,6 +544,8 @@ var scrollVis = function () {
       .attr('opacity', 0)
       .attr('x2', 0)
 
+  mile1_refTxt.attr('opacity', 0)
+
       // .attr('class refLine barPlot')
   }
 
@@ -518,6 +564,11 @@ var scrollVis = function () {
       .transition()
       .duration(600)
       .attr('opacity', 1.0)
+
+      mile1_refTxt
+      .attr('x', width - 50)
+      .attr('y', yBarScale(miles1) - refOffset)
+      .attr('opacity', 1)
 
     svg.selectAll('.xaxisLabel_scatter').remove()
     svg.selectAll('.yaxisLabel_scatter').remove()
@@ -772,8 +823,58 @@ var scrollVis = function () {
         .attr('x1', xDiet + barWidth + 20)
         .attr('y1', height - yDietScale(miles5))
         .attr('y2', height - yDietScale(miles5))
+        .classed('diet', true)
         .classed('dp_ref', true)
         .attr('opacity', 1)
+
+        g.selectAll('.mile1_d')//g.append('line')
+          .attr('x2', xDiet - barWidth/2)
+          .attr('x1', xDiet + barWidth + 20)
+          .attr('y1', height - yDietScale(miles1))
+          .attr('y2', height - yDietScale(miles1))
+          .classed('diet', true)
+          .classed('dp_ref', true)
+          .attr('opacity', 1)
+
+          g.selectAll('.med')//g.append('line')
+            .attr('x2', xDiet - barWidth/2)
+            .attr('x1', xDiet + barWidth +20)
+            .attr('y1', height - yDietScale(med))
+            .attr('y2', height - yDietScale(med))
+            .classed('diet', true)
+            .classed('dp_ref', true)
+            .attr('opacity', 1)
+
+      g.selectAll('.dv100')//g.append('line')
+        .attr('x2', xNutrients)
+        .attr('x1', xNutrients + 4*(nutBarWidth + nutBarMarg))
+        .attr('y1', height - yDVScale(100))
+        .attr('y2', height - yDVScale(100))
+        .classed('diet', true)
+        .classed('dp_ref', true)
+        .attr('opacity', 1)
+
+
+        dv_refTxt
+          .attr('opacity', 1)
+          .attr('x', xNutrients + 4*(nutBarWidth + nutBarMarg))
+          .attr('y', height - yDVScale(100) - refOffset)
+
+
+      mile5d_refTxt
+        .attr('opacity', 1)
+        .attr('x', xDiet + barWidth + 20)
+        .attr('y', height - yDietScale(miles5) - refOffset)
+
+        mile1d_refTxt
+          .attr('opacity', 1)
+          .attr('x', xDiet + barWidth + 20)
+          .attr('y', height - yDietScale(miles1) - refOffset)
+
+          med_refTxt
+            .attr('opacity', 1)
+            .attr('x', xDiet + barWidth + 20)
+            .attr('y', height - yDietScale(med) - refOffset)
 
 
 
@@ -826,7 +927,7 @@ var entries = [{name: "Meat", color: "#e41a1c", order_index:0, tag: "MEAT"},
   // } else {d.color = "#80b1d3"}
 
     // var categories = ["Meat", "Protein (non-meat)", "Beverage" ,"Dairy","Fruits", "Vegetables", "Grains"];
-    var xLeg = 300;
+    var xLeg = width + 20;
     var yLeg = 0;
     var legSize = 12;
     var legMarg = 4;
@@ -897,11 +998,12 @@ var entries = [{name: "Meat", color: "#e41a1c", order_index:0, tag: "MEAT"},
                                       xBarScale.domain(group.map(function(d){ return d.name; }))
                                       addBars(group)
                                     }
+                                    if(d3.select(element).datum().tag.toUpperCase() != "ALLFOODS") {addLabels()
+                                    } else {
+                                      removeLabels()
+                                    }
                                   }
-    if(d3.select(element).datum().tag.toUpperCase() != "ALLFOODS") {addLabels()
-    } else {
-      removeLabels()
-    }
+
   };
 
 /**
@@ -1149,6 +1251,16 @@ var entries = [{name: "Meat", color: "#e41a1c", order_index:0, tag: "MEAT"},
   }
 
   function addBars(data){
+
+    mile1_refTxt.attr('y', yBarScale(miles1) - refOffset)
+    .transition()
+    .duration(600)
+
+
+    mile5_refTxt.attr('y', yBarScale(miles5) - refOffset)
+    .transition()
+    .duration(600)
+
     g.selectAll('.yaxis_bar')
     .transition()
     .duration(600)
@@ -1286,7 +1398,7 @@ var entries = [{name: "Meat", color: "#e41a1c", order_index:0, tag: "MEAT"},
     svg.append('text')
        .attr("class", "plotTitle_scatter")
        .attr("text-anchor", "middle")
-       .attr("x", width/2)
+       .attr("x", margin.right + width/2)
        .attr("y",height_top + margin.top + margin_between_plots - margin.bottom - 5)
        .classed('plotTitle', true)
        // .attr('opacity', 0)
