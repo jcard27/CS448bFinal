@@ -13,13 +13,20 @@
 var scrollVis = function () {
   // constants to define the size
   // and margins of the vis area.
-  var width = 650;
+  var width = 550;//650;
   var height = window.innerHeight - 100//500;//700;//800;//520;
-  var margin = { top: 30, left: 100, bottom: 50, right: 70 }; // Changes margin between vis and other things
+  var margin = { top: 30, left: 100, bottom: 30, right: 70 }; // Changes margin between vis and other things
   var margin_between_plots = 100;
   var height_top = height/2 - margin_between_plots/2;
   var height_bot = height_top;
   var inactive_opac = 0.2;
+  var xNutrients = 300;
+  var nutBarWidth = 30;
+  var nutBarMarg = 20;
+  var xDiet = 100
+  var barWidth = 50
+  var refOffset = 5
+
 
 
   // Keep track of which visualization
@@ -61,16 +68,22 @@ var scrollVis = function () {
     .range([height_top, 0]);
 
   dietItems = []
-  var xDiet = 100
-  var barWidth = 50
-  var ghge_label = [{name: ''},{name: 'Total Emissions'},{name: ''}]
-  var xDietScale = d3.scaleBand()
-    .range([xDiet + barWidth/2, xDiet + barWidth/2])
-    .domain(ghge_label.map(function(d){ return d.name; }))
 
+  var ghge_label = [{name: 'Total Emissions'}]
+  var xDietScale = d3.scaleBand()
+    .range([xDiet - barWidth, xDiet + barWidth])
+    .domain(ghge_label.map(function(d){ return d.name; }))
 
   var yDietScale = d3.scaleLinear()
     .range([0, height_top]);
+
+  var nut_label = [{name: 'Calories'},
+                    {name: 'Carbs'},
+                    {name: 'Protein'},
+                    {name: 'Fat'}]
+  var xDVScale = d3.scaleBand()
+    .range([xNutrients, xNutrients + 4*(nutBarWidth + nutBarMarg)])
+    .domain(nut_label.map(function(d){ return d.name; }))
 
   var yDVScale = d3.scaleLinear()
     .range([0, height_top]);
@@ -80,6 +93,14 @@ var scrollVis = function () {
   var q5 = 6.91;
   yDietScale.domain([0, q5 + 0.05*(q5)])
   yDVScale.domain([0, 150])
+
+  var yDietScaleAxis = d3.scaleLinear()
+    .range([height_top, 0])
+    .domain([0, q5 + 0.05*(q5)]);
+
+  var yDVScaleAxis = d3.scaleLinear()
+    .range([height_top, 0])
+    .domain([0, 150])
 
 
   // When scrolling to a new section
@@ -185,17 +206,33 @@ var scrollVis = function () {
       .attr('opacity', 0)
 
     g.append('g')
-      .attr('transform', `translate(0, ${height})`)
+      .attr('transform', `translate(0, ${height - margin.bottom})`)
       .attr("class", "xaxis_scatter")
       .attr('opacity', 0)
 
       g.append('g')
-        .attr('transform', `translate(0, ${height})`)
+        .attr('transform', `translate(${barWidth/2}, ${height})`)
         .attr("class", "xaxis_diet")
         .attr('opacity', 0)
 
     g.append('g')
-      .attr('transform', `translate(0, ${height_top + margin_between_plots})`)
+      .attr('transform', `translate(0, ${height})`)
+      .attr("class", "xaxis_nutrients")
+      .attr('opacity', 0)
+
+      g.append('g')
+        .attr('transform', `translate(${xDiet - barWidth/2}, ${height_top + margin_between_plots})`)
+        .attr("class", "yaxis_diet")
+        .attr('opacity', 0)
+
+    g.append('g')
+      .attr('transform', `translate(${xNutrients}, ${height_top + margin_between_plots})`)
+      .attr("class", "yaxis_nutrients")
+      .attr('opacity', 0)
+
+    g.append('g')
+      .attr('transform', `translate(0, ${height_top + margin_between_plots - margin.bottom})`)
+      // .attr('transform', `translate(0, ${height - margin.bottom})`)
       .attr("class", "yaxis_scatter")
       .attr('opacity', 0)
 
@@ -206,6 +243,29 @@ var scrollVis = function () {
       g.append('line')
         .attr('class', 'refLine mile5')
         .attr('opacity', 0)
+
+    g.append('line')
+      .attr('class', 'refLine mile1_d')
+      .attr('opacity', 0)
+
+      g.append('line')
+        .attr('class', 'refLine mile5_d')
+        .attr('opacity', 0)
+
+        g.append('line')
+          .attr('class', 'refLine DV')
+          .attr('opacity', 0)
+
+    g_lab = svg.append('g')
+    g_lab.append('text').attr('class', 'plotTitle_scatter')
+
+
+    mile5_refTxt = g.append('text')
+    .attr("text-anchor", "end")
+    .classed('refTxt', true)
+    .classed('.mile5', true)
+    .attr('opacity', 0)
+    .text("5 Road Miles")
 
   //   // count openvis title
   //   g.append('text')
@@ -341,6 +401,10 @@ var scrollVis = function () {
       .transition()
       .duration(0)
       .attr('height', 0)
+
+      // svg.append('text')
+      //   .attr('class', 'yaxisLabel_bar')
+           // .text('')
   }
 
   /**
@@ -352,6 +416,14 @@ var scrollVis = function () {
    *
    */
   function showGrid() {
+    var entries = [{name: "Meat", color: "#e41a1c", order_index:0, tag: "MEAT"},
+                   {name: "Protein (non-meat)", color: "#ff7f00",order_index:1, tag: "PROTEIN-NONMEAT"},
+                   {name: "Vegetables", color:"#4daf4a",order_index:2, tag: "VEGETABLES"},
+                   {name: "Fruit", color: "#f781bf",order_index:3, tag: "FRUITS"},
+                   {name: "Grains", color: "#a65628", order_index: 4, tag: "GRAINS"},
+                   {name: "Dairy", color: "#377eb8", order_index: 5, tag: "DAIRY"},
+                   {name: "Beverages", color: "#DAA520", order_index: 6, tag: "BEVERAGE"}];
+    makeLegend(entries);
     dietPlanner = 0;
     g.selectAll('.count-title')
       .transition()
@@ -377,10 +449,37 @@ var scrollVis = function () {
       g.selectAll('.mile5')
         .attr('opacity', 0)
         .attr('x2', 0)
+
+      svg.selectAll('.yaxisLabel_bar').remove()
+      svg.append('text')
+         .attr("transform", "rotate(-90)")
+         .attr("class", "yaxisLabel_bar")
+         .attr("text-anchor", "middle")
+         .attr("x", -(height_top + margin.top + margin.bottom)/2)
+         .attr("y",margin.left - 40)
+         .classed('axisLabel', true)
+         .text("kg CO2 eq. per Serving")//" Equivalent per Serving")
+
+     svg.selectAll('.plotTitle_bar').remove()
+     svg.append('text')
+        .attr("class", "plotTitle_bar")
+        .attr("text-anchor", "middle")
+        .attr("x", width/2)
+        .attr("y",margin.top - 18)
+        .classed('plotTitle', true)
+        .text("Greenhouse Gas Emissions from Food Items")
+
+        removeLabels();
+        mile5_refTxt.attr('opacity', 0)
+
   };
 
   function show5Miles() {
 
+    mile5_refTxt
+    .attr('x', width)
+    .attr('y', yBarScale(miles5) + refOffset)
+    .attr('opacity', 1)
 
     var miles5line = g.selectAll('.mile5')//g.append('line')
       .attr('x1', 0)
@@ -420,6 +519,10 @@ var scrollVis = function () {
       .duration(600)
       .attr('opacity', 1.0)
 
+    svg.selectAll('.xaxisLabel_scatter').remove()
+    svg.selectAll('.yaxisLabel_scatter').remove()
+    svg.selectAll('.plotTitle_scatter').remove()
+    removeLabels();
       // .attr('class refLine barPlot')
   }
 
@@ -435,11 +538,14 @@ var scrollVis = function () {
     dietPlanner = 0;
     // xScatterScale.domain(dataSortedByGHGE.map(function(d){ return d.name; }))
     addScatter();
+
+
     scatterTransition();
     xBarScale.domain(dataSortedByGHGE.map(function(d){ return d.name; }))
     // var maxY = d3.max(dataSortedByGHGE, function (d) { return d.ghge_portion; });
     // yBarScale.domain([0, maxY + 0.05*maxY])
     addBars(dataSortedByGHGE)
+    removeLabels();
   };
 
   /**
@@ -469,7 +575,7 @@ var scrollVis = function () {
 
     g.selectAll('.inactive_scatter')
       .attr('opacity', inactive_opac)
-
+    removeLabels();
   };
 
   /**
@@ -496,6 +602,9 @@ var scrollVis = function () {
       .attr('opacity', 0)
 
     g.selectAll('.scatter_pts').remove()
+    svg.selectAll('.xaxisLabel_scatter').remove()
+    svg.selectAll('.yaxisLabel_scatter').remove()
+    svg.selectAll('.plotTitle_scatter').remove()
 
   };
 
@@ -529,6 +638,8 @@ var scrollVis = function () {
 
     g.selectAll('.inactive_scatter')
       .attr('opacity', inactive_opac)
+
+    removeLabels();
   };
 
   /**
@@ -559,6 +670,22 @@ var scrollVis = function () {
     g.selectAll('.diet')
         .attr('opacity', 0)
 
+  svg.selectAll('.xaxisLabel_scatter').remove()
+  svg.selectAll('.yaxisLabel_scatter').remove()
+  svg.selectAll('.plotTitle_scatter').remove()
+  svg.selectAll('.yaxisLabel_DV').remove()
+  svg.selectAll('.yaxisLabel_diet').remove()
+  g.selectAll('.legend').remove()
+
+  var entries = [{name: "Meat", color: "#e41a1c", order_index:0, tag: "MEAT"},
+                 {name: "Protein (non-meat)", color: "#ff7f00",order_index:1, tag: "PROTEIN-NONMEAT"},
+                 {name: "Vegetables", color:"#4daf4a",order_index:2, tag: "VEGETABLES"},
+                 {name: "Fruit", color: "#f781bf",order_index:3, tag: "FRUITS"},
+                 {name: "Grains", color: "#a65628", order_index: 4, tag: "GRAINS"},
+                 {name: "Dairy", color: "#377eb8", order_index: 5, tag: "DAIRY"},
+                 {name: "Beverages", color: "#DAA520", order_index: 6, tag: "BEVERAGE"}];
+  makeLegend(entries);
+
   };
 
   /**
@@ -570,10 +697,55 @@ var scrollVis = function () {
    */
   function showDietPlanner() {
     dietPlanner = 1;
+
+    svg.selectAll('.yaxisLabel_diet').remove()
+    svg.append('text')
+       .attr("transform", "rotate(-90)")
+       .attr("class", "yaxisLabel_diet")
+       .attr("text-anchor", "middle")
+       .attr("x", -((height_top + margin.top + margin.bottom)/2 +height_top + margin_between_plots - margin.bottom))
+       .attr("y",xDiet + 50)
+       .classed('axisLabel', true)
+       .classed('diet', true)
+       // .attr('opacity', 0)
+       .text("Total kg CO2 eq.")
+
+       svg.selectAll('.yaxisLabel_DV').remove()
+       svg.append('text')
+          .attr("transform", "rotate(-90)")
+          .attr("class", "yaxisLabel_DV")
+          .attr("text-anchor", "middle")
+          .attr("x", -((height_top + margin.top + margin.bottom)/2 +height_top + margin_between_plots - margin.bottom))
+          .attr("y",xNutrients + 60)
+          .classed('axisLabel', true)
+          .classed('diet', true)
+          // .attr('opacity', 0)
+          .text("% Daily Value")
+
+    // g.selectAll('.xaxis_diet')
+    //  // .classed('scatter', true)
+    //  .call(d3.axisBottom(xScatterScale))
+    //  .attr('opacity')
+
+     g.selectAll('.yaxis_diet')
+      // .classed('scatter', true)
+      .classed('diet', true)
+      .call(d3.axisLeft(yDietScaleAxis))
+      .attr('opacity', 1)
+
+      g.selectAll('.yaxis_nutrients')
+       // .classed('scatter', true)
+       .classed('diet', true)
+       .call(d3.axisLeft(yDVScaleAxis))
+       .attr('opacity', 1)
+
     xBarScale.domain(dataSortedByGHGE.map(function(d){ return d.name; }))
     var maxY = d3.max(dataSortedByGHGE, function (d) { return d.ghge_portion; });
     yBarScale.domain([0, maxY + 0.05*maxY])
     addBars(dataSortedByGHGE)
+
+    g.selectAll('.xaxis_bar')
+      .attr('opacity', 0)
 
     g.selectAll('.scatter')
       .attr('opacity', 0)
@@ -582,19 +754,50 @@ var scrollVis = function () {
        .classed('diet', true)
        .call(d3.axisBottom(xDietScale))
 
+       g.selectAll('.xaxis_nutrients')
+        .classed('diet', true)
+        .call(d3.axisBottom(xDVScale))
+
       g.selectAll('.xaxis_diet')
         .selectAll("text")
-          .style("text-anchor", "end")
-          .attr("dx", "-.8em")
-          .attr("dy", "-0.5em")
-          .attr("transform", "rotate(-65)")
+        .classed('dpText', true)
+
+
+    g.selectAll('.xaxis_nutrients')
+      .selectAll("text")
+      .classed('dpText', true)
+
+      g.selectAll('.mile5_d')//g.append('line')
+        .attr('x2', xDiet - barWidth/2)
+        .attr('x1', xDiet + barWidth + 20)
+        .attr('y1', height - yDietScale(miles5))
+        .attr('y2', height - yDietScale(miles5))
+        .classed('dp_ref', true)
+        .attr('opacity', 1)
+
+
+
 
       g.selectAll('.diet')
           .attr('opacity', 1)
 
 console.log('...')
-      makeLegend();
 
+var entries = [{name: "Meat", color: "#e41a1c", order_index:0, tag: "MEAT"},
+               {name: "Protein (non-meat)", color: "#ff7f00",order_index:1, tag: "PROTEIN-NONMEAT"},
+               {name: "Vegetables", color:"#4daf4a",order_index:2, tag: "VEGETABLES"},
+               {name: "Fruit", color: "#f781bf",order_index:3, tag: "FRUITS"},
+               {name: "Grains", color: "#a65628", order_index: 4, tag: "GRAINS"},
+               {name: "Dairy", color: "#377eb8", order_index: 5, tag: "DAIRY"},
+               {name: "Beverages", color: "#DAA520", order_index: 6, tag: "BEVERAGE"},
+               {name: "All Foods", color: 'white', order_index: 7, tag: "ALLFOODS"},
+               {name: "My Foods", color: 'white', order_index: 8, tag: "DIET"}];
+      makeLegend(entries);
+
+      svg.selectAll('.xaxisLabel_scatter').remove()
+      svg.selectAll('.yaxisLabel_scatter').remove()
+      svg.selectAll('.plotTitle_scatter').remove()
+      removeLabels();
 
 
   };
@@ -610,7 +813,7 @@ console.log('...')
   *
   */
 
-  function makeLegend() {
+  function makeLegend(entries) {
 
   //   if (d.fruit > 0) {d.color = color = "#f781bf"
   // } else if (d.veg > 0) {d.color = color = "#4daf4a"
@@ -627,15 +830,15 @@ console.log('...')
     var yLeg = 0;
     var legSize = 12;
     var legMarg = 4;
-    var entries = [{name: "Meat", color: "#e41a1c", order_index:0, tag: "MEAT"},
-                   {name: "Protein (non-meat)", color: "#ff7f00",order_index:1, tag: "PROTEIN-NONMEAT"},
-                   {name: "Vegetables", color:"#4daf4a",order_index:2, tag: "VEGETABLES"},
-                   {name: "Fruit", color: "#f781bf",order_index:3, tag: "FRUITS"},
-                   {name: "Grains", color: "#a65628", order_index: 4, tag: "GRAINS"},
-                   {name: "Dairy", color: "#377eb8", order_index: 5, tag: "DAIRY"},
-                   {name: "Beverages", color: "#DAA520", order_index: 6, tag: "BEVERAGE"},
-                   {name: "All Foods", color: 'black', order_index: 7, tag: ""},
-                   {name: "My Foods", color: 'black', order_index: 8, tag: "DIET"}];
+    // var entries = [{name: "Meat", color: "#e41a1c", order_index:0, tag: "MEAT"},
+    //                {name: "Protein (non-meat)", color: "#ff7f00",order_index:1, tag: "PROTEIN-NONMEAT"},
+    //                {name: "Vegetables", color:"#4daf4a",order_index:2, tag: "VEGETABLES"},
+    //                {name: "Fruit", color: "#f781bf",order_index:3, tag: "FRUITS"},
+    //                {name: "Grains", color: "#a65628", order_index: 4, tag: "GRAINS"},
+    //                {name: "Dairy", color: "#377eb8", order_index: 5, tag: "DAIRY"},
+    //                {name: "Beverages", color: "#DAA520", order_index: 6, tag: "BEVERAGE"},
+    //                {name: "All Foods", color: 'black', order_index: 7, tag: "ALLFOODS"},
+    //                {name: "My Foods", color: 'black', order_index: 8, tag: "DIET"}];
 
     var legend = g.selectAll('.legend')
       .data(entries, function(d) { return d.name })
@@ -667,6 +870,8 @@ console.log('...')
       .text(function (d) { return d.name })
       .on("click", function(d){var element = this
                                return legendClick(element)})
+
+   legend.exit().remove()
       // .on("click", function(d){group = filterByGroup(dataSortedByGHGE, d3.select(this).datum().tag)
       //                                   xBarScale.domain(group.map(function(d){ return d.name; }))
       //                                   return addBars(group)})
@@ -678,20 +883,25 @@ console.log('...')
   **/
   function legendClick(element){
     if (dietPlanner > 0) {
-    if (d3.select(element).datum().tag.toUpperCase == "DIET") {
-      var group = sortByGHGE(dietItems)
+    if (d3.select(element).datum().tag.toUpperCase() == "DIET") {
+      console.log("HI")
+      var group = sortDataByGHGE(dietItems)
       var maxY = d3.max(group, function (d) { return d.ghge_portion; });
       yBarScale.domain([0, maxY + 0.05*maxY])
       xBarScale.domain(group.map(function(d){ return d.name; }))
-      return addBars(group)
+      addBars(group)
     } else{
     var group = filterByGroup(dataSortedByGHGE, d3.select(element).datum().tag)
                                       var maxY = d3.max(group, function (d) { return d.ghge_portion; });
                                       yBarScale.domain([0, maxY + 0.05*maxY])
                                       xBarScale.domain(group.map(function(d){ return d.name; }))
-                                      return addBars(group)
+                                      addBars(group)
                                     }
                                   }
+    if(d3.select(element).datum().tag.toUpperCase() != "ALLFOODS") {addLabels()
+    } else {
+      removeLabels()
+    }
   };
 
 /**
@@ -704,9 +914,13 @@ console.log('...')
 
       updateDietVis(dietData)
       g_dp.selectAll('.dietList')
+      .on("mouseover",	function(){ var element = this;
+                                    return showTooltips(element, dataSortedByGHGE); })
+      .on("mouseout", function(){return undisplay()})
       .on("click", function(d){removeServing( d3.select(this).datum().name)
                                 dietData = filterByServings(dataSortedByGHGE)
                                 return updateDietVis(dietData) })
+
   }
 
   function updateDietVis(dietData) {
@@ -799,45 +1013,47 @@ console.log('...')
     })
 
     g.selectAll('.dietGHGE')
-      .attr('x', function(d) { return xDiet })
+      .attr('x', function(d) { return xDietScale('Total Emissions') + barWidth})// - barWidth/2})
       .attr("y", function (d) {return height - yDietScale(d.ghge_portion_prev_food + d.num_servings*d.ghge_portion);})
       .attr('height', function(d) { return yDietScale(d.num_servings*d.ghge_portion) + 0.5 })
       .attr('width', barWidth)
       .attr('fill', function(d) { return d.color })
 
     g.selectAll('.dietKcal')
-      .attr('x', function(d) { return 250 })
+      .attr('x', xDVScale('Calories')+ 10)//function(d) { return 250 })
       .attr("y", function (d) {return height - yDVScale( 100*(d.kcal_prev + d.num_servings*d.kcal_portion)/2000 );})
       .attr('height', function(d) { return yDVScale( 100*(d.num_servings*d.kcal_portion)/2000 ) + 0.5 })
-      .attr('width', 20)
+      .attr('width', nutBarWidth)//20)
       .attr('fill', function(d) { return d.color })
 
     g.selectAll('.dietCarb')
-      .attr('x', function(d) { return 300 })
+      .attr('x', xDVScale('Carbs')+ 10)//function(d) { return 300 })
       .attr("y", function (d) {return height - yDVScale( 100*(d.carb_prev + d.num_servings*d.carb_portion)/320 );})
       .attr('height', function(d) { return yDVScale( 100*d.num_servings*d.carb_portion/320 ) + 0.5 })
-      .attr('width', 20)
+      .attr('width', nutBarWidth)//20)
       .attr('fill', function(d) { return d.color })
 
     g.selectAll('.dietProtein')
-      .attr('x', function(d) { return 350 })
+      .attr('x', xDVScale('Protein')+ 10)//function(d) { return 350 })
       .attr("y", function (d) {return height - yDVScale( 100*(d.protein_prev + d.num_servings*d.protein_portion)/50 );})
       .attr('height', function(d) { return yDVScale(100*d.num_servings*d.protein_portion/50) + 0.5 })
-      .attr('width', 20)
+      .attr('width', nutBarWidth)//20)
       .attr('fill', function(d) { return d.color })
 
     g.selectAll('.dietFat')
-      .attr('x', function(d) { return 400 })
+      .attr('x', xDVScale('Fat') + 10)//function(d) { return 400 })
       .attr("y", function (d) {return height - yDVScale( 100*(d.fat_prev + d.num_servings*d.fat_portion)/70 );})
       .attr('height', function(d) { return yDVScale( 100*(d.num_servings*d.fat_portion)/70 ) + 0.5 })
-      .attr('width', 20)
+      .attr('width', nutBarWidth)//20)
       .attr('fill', function(d) { return d.color })
 
     g_dp.selectAll('.dietList')
       .attr('fill', function(d) { return d.color })
       .attr('x', function(d) { return 0 })
       .attr("y", function (d) {return d.order_index * 13;}) //height_top + margin_between_plots +
-      .text(function(d) { return d.num_servings + 'X ' + d.name + ': ' + d.portion_desc })
+      .text(function(d) { return d.num_servings + 'X ' + d.name})// + ': ' + d.portion_desc })
+
+      g.selectAll('.dp_ref').moveToFront()
   };
 
 
@@ -933,13 +1149,21 @@ console.log('...')
   }
 
   function addBars(data){
-    // var bars = g.selectAll('.bar')
-    //   .data(dataSortedByGHGE, function(d) { return d.name })
-    //   .attr('class', 'bar active_bar')
-    //   .attr('height', 0)
+    g.selectAll('.yaxis_bar')
+    .transition()
+    .duration(600)
+    // .classed('scatter', true)
+    .call(d3.axisLeft(yBarScale).ticks(5))
+    // .ticks(5)
+
+    g.selectAll('.yaxis_bar')
+     .transition()
+     .duration(600)
+     .attr('opacity', 1)
 
 
-      // .moveToFront()
+
+     g.selectAll('.yaxis_bar').selectAll('path').remove()
 
     var bars = g.selectAll('.bar')
       .data(data, function(d) { return d.name })
@@ -1009,25 +1233,31 @@ console.log('...')
 
   };
 
+  function removeLabels() {
+    g.selectAll('.foodLabels')
+      .attr('opacity', 0)
+  }
+
   function addLabels() {
     g.selectAll('.xaxis_bar')
+      .classed('foodLabels', true)
       .call(d3.axisBottom(xBarScale))
       .selectAll("text")
         .style("text-anchor", "end")
         .attr("dx", "-.8em")
         .attr("dy", "-0.5em")
-        .attr("transform", "rotate(-65)")
+        .attr("transform", "rotate(-60)")
 
-    g.selectAll('.yaxis_bar')
-      .call(d3.axisLeft(yBarScale))
+    // g.selectAll('.yaxis_bar')
+    //   .call(d3.axisLeft(yBarScale))
 
 
     g.selectAll('.xaxis_bar').selectAll('path').remove()
 
-    // g.selectAll('.xaxis_bar')
-    //   .transition()
-    //   .duration(600)
-    //   .attr('opacity', 1)
+    g.selectAll('.xaxis_bar')
+      .transition()
+      .duration(600)
+      .attr('opacity', 1)
     //
     // g.selectAll('.yaxis_bar')
     //   .transition()
@@ -1052,13 +1282,58 @@ console.log('...')
   };
 
   function addScatter(data){
+    svg.selectAll('.plotTitle_scatter').remove()
+    svg.append('text')
+       .attr("class", "plotTitle_scatter")
+       .attr("text-anchor", "middle")
+       .attr("x", width/2)
+       .attr("y",height_top + margin.top + margin_between_plots - margin.bottom - 5)
+       .classed('plotTitle', true)
+       // .attr('opacity', 0)
+       .text("Greenhouse Gas Emissions vs. Calories")
+
+       svg.selectAll('.xaxisLabel_scatter').remove()
+       svg.append('text')
+          .attr("class", "xaxisLabel_scatter")
+          .attr("text-anchor", "middle")
+          .attr("x", width/2)
+          .attr("y",height + 30)
+          .classed('axisLabel', true)
+          // .attr('opacity', 0)
+          .text("Calories per Serving")
+
+       svg.selectAll('.yaxisLabel_scatter').remove()
+       svg.append('text')
+          .attr("transform", "rotate(-90)")
+          .attr("class", "yaxisLabel_scatter")
+          .attr("text-anchor", "middle")
+          .attr("x", -((height_top + margin.top + margin.bottom)/2 +height_top + margin_between_plots - margin.bottom))
+          .attr("y",margin.left - 40)
+          .classed('axisLabel', true)
+          // .attr('opacity', 0)
+          .text("kg CO2 eq. per Serving")
+
+      // svg.selectAll('.yaxisLabel_scatter')
+      //   .transition()
+      //   .duration(600)
+      //   .attr('opacity', 1.0)
+      //   svg.selectAll('.xaxisLabel_scatter')
+      //     .transition()
+      //     .duration(600)
+      //     .attr('opacity', 1.0)
+      //     svg.selectAll('.plotTitle_scatter')
+      //       .transition()
+      //       .duration(600)
+      //       .attr('opacity', 1.0)
+
+
     var circles = g.selectAll(".scatter")
       .data(dataSortedByGHGE, function(d){return d.name})
       .attr("class", 'scatter scatter_pts active_scatter')
       .attr('r', 3)
       .attr("fill", function(d) {return d.color;})
       .attr("cx", function (d) {return xScatterScale(d.kcal_portion);})
-      .attr("cy", function (d) {return height_top + margin_between_plots + yScatterScale(d.ghge_portion);})
+      .attr("cy", function (d) {return height_top + margin_between_plots - margin.bottom + yScatterScale(d.ghge_portion);})
       .attr('opacity', 1)
       .on("mouseover",	function(){ var element = this;
                                     return showTooltips(element, dataSortedByGHGE); })
@@ -1069,7 +1344,7 @@ console.log('...')
             .attr("class", 'scatter scatter_pts active_scatter')
             .attr("fill", function(d) {return d.color;})
             .attr("cx", function (d) {return xScatterScale(d.kcal_portion);})
-            .attr("cy", function (d) {return height_top + margin_between_plots + yScatterScale(d.ghge_portion);})
+            .attr("cy", function (d) {return height_top + margin_between_plots - margin.bottom + yScatterScale(d.ghge_portion);})
             .attr('opacity', 0)
             .on("mouseover",	function(){ var element = this;
                                           return showTooltips(element, dataSortedByGHGE); })
@@ -1081,17 +1356,21 @@ console.log('...')
 
      g.selectAll('.yaxis_scatter')
      .classed('scatter', true)
-     .call(d3.axisLeft(yScatterScale))
+     .call(d3.axisLeft(yScatterScale).ticks(5))
 
      g.selectAll('.yaxis_scatter')
       .transition()
-      .duration(600)
+      .duration(0)
       .attr('opacity', 1)
+
+      g.selectAll('.yaxis_scatter').selectAll('path').remove()
 
       g.selectAll('.xaxis_scatter')
        .transition()
-       .duration(600)
+       .duration(0)
        .attr('opacity', 1)
+
+    g.selectAll('.xaxis_scatter').selectAll('path').remove()
 
   }
 

@@ -65,8 +65,17 @@
   /* text-anchor: middle; */
 }
 
+.refTxt{
+  font-family: Arial,Helvetica,"san-serif";
+  color: #262626;
+  /* font-weight: bold; */
+  font-size:12px;
+  /* text-anchor: middle; */
+}
+
 #sections .dietList {
   font-family: Arial,Helvetica,"san-serif";
+  color: #262626;
   font-weight: bold;
   font-size:12px;
   /* text-anchor: middle; */
@@ -76,6 +85,31 @@
   font-family: Arial,Helvetica,"san-serif";
   font-weight: bold;
   font-size:12px;
+  /* text-anchor: middle; */
+}
+
+.dpText {
+  font-family: Arial,Helvetica,"san-serif";
+  color: #262626;
+  font-weight: bold;
+  font-size:12px;
+  /* text-anchor: middle; */
+}
+
+.axisLabel {
+  /* font-family: "TiemposTextWeb-Regular","Georgia"; */
+  font-family: Arial,Helvetica,"san-serif";
+  color: #262626;
+  /* font-weight: bold; */
+  font-size:13px;
+  /* text-anchor: middle; */
+}
+.plotTitle {
+  /* font-family: "TiemposTextWeb-Regular","Georgia"; */
+  font-family: Arial,Helvetica,"san-serif";
+  color: #262626;
+  font-weight: bold;
+  font-size:15px;
   /* text-anchor: middle; */
 }
 
